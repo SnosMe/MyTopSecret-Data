@@ -1,0 +1,10 @@
+static_library("tiny-AES-c") {
+  sources = [
+    "aes.c",
+  ]
+  defines = [
+    "CBC=0",
+    "ECB=0",
+    "CTR=1",
+  ]
+}

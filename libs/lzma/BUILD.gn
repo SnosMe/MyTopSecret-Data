@@ -1,0 +1,10 @@
+static_library("lzma") {
+  sources = [
+    "LzmaDec.c",
+    "LzmaEnc.c",
+    "LzFind.c",
+  ]
+  defines = [
+    "_7ZIP_ST",
+  ]
+}
