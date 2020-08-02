@@ -3,13 +3,14 @@ config("compiler_defaults") {
     cflags = [
       "-fPIC",
       "-fno-stack-protector",
-      "-pthread",
+      "-ffunction-sections",
     ]
   }
 }
 config("executable_ldconfig") {
   if (!is_mac) {
     ldflags = [
+      "-Wl,--gc-sections",
       "-Wl,-rpath=\$ORIGIN/",
       "-Wl,-rpath-link=",
     ]

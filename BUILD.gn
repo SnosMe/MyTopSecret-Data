@@ -2,13 +2,18 @@ executable("native-store") {
   sources = [
     "src/main.c",
     "src/compression.c",
+    "src/encryption.c",
   ]
   deps = [
     "//libs/lzma",
     "//libs/tiny-AES-c",
+    "//libs/argon2",
+    "//libs/randombytes",
   ]
   include_dirs = [
     "//libs/lzma",
     "//libs/tiny-AES-c",
+    "//libs/argon2/include",
+    "//libs/randombytes",
   ]
 }

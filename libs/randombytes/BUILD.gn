@@ -1,0 +1,5 @@
+static_library("randombytes") {
+  sources = [
+    "randombytes.c",
+  ]
+}

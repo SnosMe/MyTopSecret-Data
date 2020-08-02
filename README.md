@@ -50,6 +50,7 @@ mtsd filename.dat
 ```
 pwd = from_user_input()
 rnd_bytes = crypto_random(n=16 bytes)
+PBKDF2 argon2id
 key = pfsdppdsfs(pwd, 256, salt=rnd_bytes)
 encrypted = AES256_CTR(data, key, nonce=rnd_bytes)
 ```

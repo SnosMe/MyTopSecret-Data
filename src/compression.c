@@ -14,8 +14,7 @@ static void SzFree(ISzAllocPtr p, void* address) {
 }
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
-int compress_data(uint8_t* data, size_t data_size,
-                  uint8_t** compressed, size_t* compressed_size) {
+int compress_data(uint8_t* data, size_t data_size, size_t* compressed_size) {
   CLzmaEncProps props;
   LzmaEncProps_Init(&props);
   props.lc = 0;
@@ -27,18 +26,17 @@ int compress_data(uint8_t* data, size_t data_size,
 
   uint8_t props_encoded[LZMA_PROPS_SIZE];
   size_t props_encoded_size = LZMA_PROPS_SIZE;
-  *compressed_size = data_size + 1;
-  *compressed = (uint8_t*)malloc(*compressed_size);
+  *compressed_size = data_size;
 
   SRes res = LzmaEncode(
-    *compressed, compressed_size,
+    data, compressed_size,
     data, data_size,
     &props, props_encoded, &props_encoded_size, 0, NULL, &g_Alloc, &g_Alloc);
 
   if (res != SZ_OK) {
     return -1;
   }
-  else if (*compressed_size > data_size) {
+  else if (*compressed_size == data_size) {
     return -2;
   }
   return 0;
