@@ -1,0 +1,68 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "MTSData",
+	"scopeName": "source.mtsdata",
+	"patterns": [
+		{
+			"include": "#document"
+		}
+	],
+	"repository": {
+		"document": {
+			"begin": "^",
+			"end": "$",
+			"name": "meta.structure.document.mtsdata",
+			"patterns": [
+				{
+					"match": "^---$",
+					"name": "punctuation.separator.document.mtsdata"
+				},
+				{
+					"include": "#record"
+				}
+			]
+		},
+		"record": {
+			"begin": "^",
+			"end": "$",
+			"name": "meta.structure.record.mtsdata",
+			"patterns": [
+				{
+					"include": "#recordkey"
+				},
+				{
+					"begin": "(:)[ ]*$",
+					"name": "meta.structure.record.value.mtsdata",
+					"while": "^[ ]{2}",
+					"captures": {
+						"1": {
+							"name": "punctuation.separator.record.key-value.mtsdata"
+						}
+					},
+					"patterns": [
+						{
+							"match": "\\G.+$",
+							"name": "string.multi-line.mtsdata"
+						}
+					]
+				},
+				{
+					"match": "(:)[ ]*(.+?)[ ]*$",
+					"name": "meta.structure.record.value.mtsdata",
+					"captures": {
+						"1": {
+							"name": "punctuation.separator.record.key-value.mtsdata"
+						},
+						"2": {
+							"name": "string.mtsdata"
+						}
+					}
+				}
+			]
+		},
+		"recordkey": {
+			"match": "^\\w*\\b",
+			"name": "storage.type.recordkey.record.mtsdata"
+		}
+	}
+}

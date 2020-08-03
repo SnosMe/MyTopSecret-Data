@@ -1,0 +1,25 @@
+{
+    "name": "mtsdata",
+    "displayName": "mtsd",
+    "description": "MyTopSecret-Data",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.47.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "mtsdata",
+            "aliases": ["MTSData", "mtsdata"],
+            "extensions": ["mtsd"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "mtsdata",
+            "scopeName": "source.mtsdata",
+            "path": "./syntaxes/mtsdata.tmLanguage.json"
+        }]
+    }
+}
