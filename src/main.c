@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <uchar.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "mtsdata.h"
 
 struct Field {
@@ -47,7 +49,41 @@ void hexDump (const char * desc, const void * addr, const int len) {
     printf ("  %s\n", buff);
 }
 
+void readfile(const char* filename, uint8_t** content, size_t* size) {  
+  FILE* file = fopen(filename, "rb");
+  if (file == NULL) {
+    printf("Cannot open file  '%s'.\n", filename);
+    exit(1);
+  }
+
+  struct stat file_stat;
+  if (fstat(fileno(file), &file_stat) != 0) {
+    printf("Cannot get info about file '%s'.\n", filename);
+    exit(1);
+  }
+
+  *size = file_stat.st_size;
+  *content = malloc(*size);
+  if (*content == NULL) {
+    printf("Cannot allocate memmory to read file.\n");
+    exit(1);
+  }
+
+  int read = fread(*content, sizeof(uint8_t), *size, file);
+  if (read != *size) {
+    printf("Fatal error while reading file.\n");
+    exit(1);
+  }
+
+  fclose(file);
+}
+
 int main() {
+  uint8_t* content;
+  size_t content_size;
+  readfile("./data.txt", &content, &content_size);
+  free(content);
+
   uint8_t* out = malloc(MTSD_HEADER_SIZE + MTSD_PAYLOAD_MAX_SIZE);
   memcpy(out + MTSD_HEADER_SIZE, raw_data, sizeof(raw_data));
 
