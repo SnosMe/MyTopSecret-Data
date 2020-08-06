@@ -10,9 +10,11 @@
 #define MTSD_HEADER_SIZE (MTSD_RANDOM_BYTES + MTSD_TIMESTAMP_SIZE + MTSD_CRC_SIZE)
 #define MTSD_PAYLOAD_MAX_SIZE 0xFFFF
 
+#define MTSD_CHECK(result)    if ((result) != MTSD_OK) { return MTSD_ERR; }
+
 typedef enum MTSData_Result {
-  MTSD_OK = 0,
-  MTSD_ERR = 1
+  MTSD_ERR = 0,
+  MTSD_OK = 1
 } mtsd_res;
 
 typedef enum MTSData_Error_Source {
@@ -23,9 +25,11 @@ typedef enum MTSData_Error_Source {
 
 typedef enum MTSData_Error {
   MTSD_EMEMORY = 0,
+  MTSD_EREADER = 0,
 } mtsd_err;
 
 void mtsd_error(mtsd_error_source src, int error);
+void mtsd_error_msg(mtsd_error_source src, int error, char *msg);
 
 int compress_data(uint8_t* data, size_t data_size, size_t* compressed_size);
 
@@ -34,5 +38,9 @@ int decompress_data(uint8_t* compressed, size_t compressed_size,
 
 mtsd_res encrypt(uint8_t* data, size_t data_size,
                  uint8_t* pwd, size_t pwd_size, uint8_t* random_bytes);
+
+typedef int (*mtsd_read_callback)(void *data, uint8_t *buffer, size_t size, size_t *size_read);
+
+mtsd_res parse(mtsd_read_callback read_callback, void *callback_data);
 
 #endif

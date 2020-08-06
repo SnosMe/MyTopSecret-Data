@@ -17,7 +17,10 @@ static uint8_t raw_data[] = {
 };
 
 void mtsd_error(mtsd_error_source src, int error) {
-  //
+  printf("mtsd_error\n");
+}
+void mtsd_error_msg(mtsd_error_source src, int error, char *msg) {
+  printf("mtsd_error_msg: %s\n", msg);
 }
 
 void hexDump (const char * desc, const void * addr, const int len) {
@@ -78,16 +81,40 @@ void readfile(const char* filename, uint8_t** content, size_t* size) {
   fclose(file);
 }
 
-int main() {
+typedef struct {
   uint8_t* content;
-  size_t content_size;
-  readfile("./data.txt", &content, &content_size);
-  free(content);
+  size_t size;
+  size_t read;
+} cli_reader_state;
+
+int read_handler(void *data, uint8_t *buffer, size_t size, size_t *size_read) {
+  cli_reader_state *state = data;
+
+  if (state->read == state->size) {
+    *size_read = 0;
+    return 1;
+  }
+
+  if (size > (state->size - state->read)) {
+    size = state->size - state->read;
+  }
+
+  memcpy(buffer, state->content + state->read, size);
+  state->read += size;
+  *size_read = size;
+  return 1;
+}
+
+int main() {
+  cli_reader_state reader = { .read = 0 };
+  readfile("./data.mtsd", &reader.content, &reader.size);
+  parse(read_handler, &reader);
+  free(reader.content);
 
   uint8_t* out = malloc(MTSD_HEADER_SIZE + MTSD_PAYLOAD_MAX_SIZE);
   memcpy(out + MTSD_HEADER_SIZE, raw_data, sizeof(raw_data));
 
-  hexDump("raw", out + MTSD_HEADER_SIZE, sizeof(raw_data));
+  // hexDump("raw", out + MTSD_HEADER_SIZE, sizeof(raw_data));
 
   size_t compressed_size;
   if (compress_data(out + MTSD_HEADER_SIZE, sizeof(raw_data), &compressed_size) != 0) {
@@ -99,7 +126,7 @@ int main() {
   encrypt(out + MTSD_HEADER_SIZE, compressed_size, "password", sizeof("password"), out + MTSD_HEADER_SIZE - MTSD_RANDOM_BYTES);
 
   printf("compressed_size: %d B, saved: %d B, ratio: %d%\n", compressed_size, sizeof(raw_data) - compressed_size, compressed_size * 100 / sizeof(raw_data));
-  hexDump("lzma", out + MTSD_HEADER_SIZE, sizeof(raw_data));
+  // hexDump("lzma", out + MTSD_HEADER_SIZE, sizeof(raw_data));
 
   uint8_t* normal;
   decompress_data(out + MTSD_HEADER_SIZE, compressed_size, &normal, sizeof(raw_data));
