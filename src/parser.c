@@ -1,27 +1,32 @@
 #include "mtsdata.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <uchar.h>
-#include <Windows.h>
+// #include <Windows.h>
 
 typedef enum MTSData_Token_Kind {
   MTSD_STREAM_START_TOKEN,
   MTSD_STREAM_END_TOKEN,
   MTSD_RECORD_SEPARATOR_TOKEN,
-  MTSD_STRING_TOKEN,
-  MTSD_COLON_TOKEN,
+  MTSD_KEY_TOKEN,
+  MTSD_VALUE_TOKEN,
   MTSD_VALUE_MULTILINE_TOKEN,
 } mtsd_token_kind;
 
-#define UTF8_MAX 4
+typedef struct {
+  mtsd_token_kind kind;
+  size_t start;
+  size_t end;
+  uint8_t* string;
+  size_t string_size;
+} mtsd_token;
 
 typedef struct MTSData_Parser {
   size_t line;
   size_t column;
-  uint8_t* start;
-  uint8_t* end;
-  uint8_t* current;
+  size_t offset;
 
   struct {
     mtsd_read_callback callback;
@@ -29,57 +34,79 @@ typedef struct MTSData_Parser {
   } input;
 
   struct {
-    uint8_t cBuff[UTF8_MAX];
-    uint8_t nBuff[UTF8_MAX];
-    int next_valid;
+    uint8_t mb_char[4];
     int eof;
   } reader;
 
   struct {
     size_t start;
     size_t end;
-    int kind;
-    uint8_t buffer;
+    uint8_t* buffer;
+    size_t buffer_size;
   } lexer;
-
-  uint8_t *buffer_old;
-  size_t size;
 } mtsd_parser;
-
-#define CURRENT(state)    (*(state)->current)
-
-static void print_state(mtsd_parser* state) {
-  printf("Parser<> Ln: %zu, Col: %zu\n", state->line, state->column);
-}
-
-static int can_read(mtsd_parser *state, size_t n) {
-  return ((state->current + n) < (state->buffer_old + state->size));
-}
-
-static uint8_t peek(mtsd_parser *state, size_t n) {
-  return (state->current < (state->buffer_old + state->size));
-}
-
-static uint8_t read_next(mtsd_parser *state) {
-  if (!can_read(state, 1)) {
-    return '\0';
-  }
-  ++state->current;
-
-  if (CURRENT(state) == '\r' || CURRENT(state) == '\n') {
-
-  }
-
-  return CURRENT(state);
-}
-
-static void parse_string(mtsd_parser* state) {
-}
 
 #define UTF8_LEN(bytes)    (((bytes)[0] & 0x80) == 0x00 ? 1 : \
                             ((bytes)[0] & 0xE0) == 0xC0 ? 2 : \
                             ((bytes)[0] & 0xF0) == 0xE0 ? 3 : \
                             ((bytes)[0] & 0xF8) == 0xF0 ? 4 : 0)
+
+#define CURRENT(state)    ((state)->reader.mb_char[0])
+
+static mtsd_res input_next(mtsd_parser *state);
+
+static void print_state(mtsd_parser* state) {
+  printf("Parser<> Ln: %zu, Col: %zu\n", state->line, state->column);
+}
+
+static mtsd_res lexer_add (mtsd_parser *state) {
+  state->lexer.end += 1;
+  size_t len = UTF8_LEN(state->reader.mb_char);
+  state->lexer.buffer = realloc(state->lexer.buffer, state->lexer.buffer_size + len);
+  if (state->lexer.buffer == NULL) {
+    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
+    return MTSD_ERR;
+  }
+  memcpy(state->lexer.buffer + state->lexer.buffer_size, state->reader.mb_char, len);
+  state->lexer.buffer_size += len;
+  return MTSD_OK;
+}
+
+static void lexer_clear(mtsd_parser *state) {
+  state->lexer.start = state->offset;
+  state->lexer.end = state->offset;
+  state->lexer.buffer_size = 0;
+  if (state->lexer.buffer != NULL) {
+    free(state->lexer.buffer);
+    state->lexer.buffer = NULL;
+  }
+}
+
+static mtsd_res parse_key(mtsd_parser *state) {
+  for (;;) {
+    if (CURRENT(state) == ':' || CURRENT(state) == '\n') {
+      return MTSD_OK;
+    } else {
+      MTSD_CHECK(lexer_add(state));
+    }
+
+    MTSD_CHECK(input_next(state));
+    if (state->reader.eof) return MTSD_OK;
+  }
+}
+
+static mtsd_res parse_value(mtsd_parser *state) {
+  for (;;) {
+    if (CURRENT(state) == '\n') {
+      return MTSD_OK;
+    } else {
+      MTSD_CHECK(lexer_add(state));
+    }
+
+    MTSD_CHECK(input_next(state));
+    if (state->reader.eof) return MTSD_OK;
+  }
+}
 
 static mtsd_res input_read_utf8(mtsd_parser *state, uint8_t *buff) {
   size_t read;
@@ -145,23 +172,10 @@ static mtsd_res input_read_utf8(mtsd_parser *state, uint8_t *buff) {
   return MTSD_OK;
 }
 
-static mtsd_res input_peek(mtsd_parser *state);
-
 static mtsd_res input_next(mtsd_parser *state) {
-  if (state->reader.next_valid) {
-    memcpy(state->reader.cBuff, state->reader.nBuff, UTF8_MAX);
-    state->reader.next_valid = 0;
-    return MTSD_OK;
-  }
-  MTSD_CHECK(input_read_utf8(state, state->reader.cBuff));
-  if (!state->reader.eof && state->reader.cBuff[0] == '\r') {
-    MTSD_CHECK(input_peek(state));
-    if (!state->reader.eof && state->reader.nBuff[0] == '\n') {
-      state->reader.cBuff[0] = '\n';
-      state->reader.next_valid = 0;
-    }
-  }
-  if (state->reader.cBuff[0] == '\n') {
+  MTSD_CHECK(input_read_utf8(state, state->reader.mb_char));
+  state->offset += 1;
+  if (state->reader.mb_char[0] == '\n') {
     state->line += 1;
     state->column = 0;
   } else if (!state->reader.eof) {
@@ -170,37 +184,139 @@ static mtsd_res input_next(mtsd_parser *state) {
   return MTSD_OK;
 }
 
-static mtsd_res input_peek(mtsd_parser *state) {
-  if (state->reader.next_valid) {
-    return MTSD_OK;
+static void lexer_trim(mtsd_parser *state, size_t max_start, size_t max_end) {
+  if (max_start > 0) {
+    size_t dt = 0;
+    for (size_t i = 0; i < state->lexer.buffer_size && i < max_start; i += 1) {
+      if (state->lexer.buffer[i] == ' ') {
+        dt += 1;
+      } else {
+        break;
+      }
+    }
+    memmove(state->lexer.buffer, state->lexer.buffer + dt, state->lexer.buffer_size - dt);
+    state->lexer.start += dt;
+    state->lexer.buffer_size -= dt;
   }
-  MTSD_CHECK(input_read_utf8(state, state->reader.nBuff));
-  state->reader.next_valid = 1;
+  if (max_end > 0) {
+    size_t dt = 0;
+    for (size_t i = 0; i < state->lexer.buffer_size && i < max_end; i += 1) {
+      if (
+        state->lexer.buffer[state->lexer.buffer_size - i - 1] == ' ' ||
+        state->lexer.buffer[state->lexer.buffer_size - i - 1] == '\r'
+      ) {
+        dt += 1;
+      } else {
+        break;
+      }
+    }
+    state->lexer.end -= dt;
+    state->lexer.buffer_size -= dt;
+  }
+}
+
+static mtsd_res lexer_next(mtsd_parser *state, mtsd_token *token) {
+  for (;;) {
+    MTSD_CHECK(input_next(state));
+    if (state->reader.eof) break;
+
+    lexer_clear(state);
+    if (state->column == 1) {
+      MTSD_CHECK(parse_key(state));
+      if (state->lexer.buffer_size == 0) continue;
+
+      if (
+        state->lexer.buffer_size >= 2 &&
+        state->lexer.buffer[0] == ' ' &&
+        state->lexer.buffer[1] == ' '
+      ) {
+        token->kind = MTSD_VALUE_MULTILINE_TOKEN;
+        if (CURRENT(state) == ':') {
+          MTSD_CHECK(parse_value(state));
+        }
+        lexer_trim(state, 2, -1);
+        token->start = state->lexer.start;
+        token->end = state->lexer.end;
+        token->string = state->lexer.buffer;
+        token->string_size = state->lexer.buffer_size;
+        return MTSD_OK;
+      }
+
+      lexer_trim(state, -1, -1);
+
+      if (
+        state->lexer.buffer_size == 3 &&
+        state->lexer.buffer[0] == '-' &&
+        state->lexer.buffer[1] == '-' &&
+        state->lexer.buffer[2] == '-'
+      ) {
+        token->kind = MTSD_RECORD_SEPARATOR_TOKEN;
+        token->start = state->lexer.start;
+        token->end = state->lexer.end;
+        return MTSD_OK;
+      }
+
+      if (state->lexer.buffer_size > 0) {
+        token->kind = MTSD_KEY_TOKEN;
+        token->start = state->lexer.start;
+        token->end = state->lexer.end;
+        token->string = state->lexer.buffer;
+        token->string_size = state->lexer.buffer_size;
+        return MTSD_OK;
+      }
+    } else {
+      MTSD_CHECK(parse_value(state));
+      lexer_trim(state, -1, -1);
+      if (state->lexer.buffer_size == 0) continue;
+
+      token->kind = MTSD_VALUE_TOKEN;
+      token->start = state->lexer.start;
+      token->end = state->lexer.end;
+      token->string = state->lexer.buffer;
+      token->string_size = state->lexer.buffer_size;
+      return MTSD_OK;
+    }
+  }
+
+  token->kind = MTSD_STREAM_END_TOKEN;
+  token->start = state->offset;
+  token->start = state->offset;
   return MTSD_OK;
 }
 
 mtsd_res parse(mtsd_read_callback read_callback, void *callback_data) {
-  SetConsoleOutputCP(CP_UTF8);
+  // SetConsoleOutputCP(CP_UTF8);
 
   mtsd_parser state;
   memset(&state, 0, sizeof(state));
   state.input.callback = read_callback;
   state.input.data = callback_data;
+  state.offset = -1;
   state.line = 1;
   state.column = 0;
-  state.end = NULL;
 
-  while (input_next(&state) && !state.reader.eof) {
-    // if ()
-  }
+  for (;;) {
+    mtsd_token token;
+    MTSD_CHECK(lexer_next(&state, &token));
+    if (token.kind == MTSD_STREAM_END_TOKEN) break;
 
-  while (input_next(&state) && !state.reader.eof) {
-    if (state.reader.cBuff[0] == '\n') {
-      printf("[\\n]\n");
-    } else {
-      printf("[%.*s] Ln: %zu, Col: %zu\n", UTF8_LEN(state.reader.cBuff), state.reader.cBuff, state.line, state.column);
+    if (token.kind == MTSD_KEY_TOKEN) {
+      printf("%04zu %04zu [KEY] \"%.*s\"\n", token.start, token.end, token.string_size, token.string);
+    }
+    else if (token.kind == MTSD_VALUE_TOKEN) {
+      printf("%04zu %04zu [VALUE] \"%.*s\"\n", token.start, token.end, token.string_size, token.string);
+    }
+    else if (token.kind == MTSD_VALUE_MULTILINE_TOKEN) {
+      printf("%04zu %04zu [VALUE_MULTILINE] \"%.*s\"\n", token.start, token.end, token.string_size, token.string);
+    }
+    else if (token.kind == MTSD_RECORD_SEPARATOR_TOKEN) {
+      printf("%04zu %04zu [RECORD_SEPARATOR]\n", token.start, token.end);
+    }
+    else {
+      printf("... unknown tok ...\n");
     }
   }
+
   print_state(&state);
 
   return MTSD_OK;
