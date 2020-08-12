@@ -18,15 +18,33 @@ typedef enum MTSData_Result {
 } mtsd_res;
 
 typedef enum MTSData_Error_Source {
-  MTSD_ESELF = 0,
-  MTSD_EARGON2 = 1,
-  MTSD_ERANDOMBYTES = 2,
+  MTSD_ESELF,
+  MTSD_EARGON2,
+  MTSD_ERANDOMBYTES,
 } mtsd_error_source;
 
 typedef enum MTSData_Error {
-  MTSD_EMEMORY = 0,
-  MTSD_EREADER = 0,
+  MTSD_EMEMORY,
+  MTSD_EREADER,
+  MTSD_EENCODE_RECORD_SIZE,
+  MTSD_EENCODE_PAYLOAD_SIZE,
 } mtsd_err;
+
+typedef struct mtsd_field {
+  uint8_t key;
+  uint8_t *value;
+  size_t value_size;
+  struct mtsd_field *next;
+} mtsd_field;
+
+typedef struct mtsd_record {
+  mtsd_field *fields;
+  struct mtsd_record *next;
+} mtsd_record;
+
+typedef struct {
+  mtsd_record* records;
+} mtsd_document;
 
 void mtsd_error(mtsd_error_source src, int error);
 void mtsd_error_msg(mtsd_error_source src, int error, char *msg);
@@ -42,5 +60,7 @@ mtsd_res encrypt(uint8_t* data, size_t data_size,
 typedef int (*mtsd_read_callback)(void *data, uint8_t *buffer, size_t size, size_t *size_read);
 
 mtsd_res parse(mtsd_read_callback read_callback, void *callback_data);
+
+mtsd_res mtsd_encode(mtsd_document* doc, uint8_t* out, size_t* size);
 
 #endif

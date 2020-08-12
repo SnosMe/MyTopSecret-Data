@@ -1,3 +1,6 @@
+#ifndef MTSD_LANG_PARSER_H
+#define MTSD_LANG_PARSER_H
+
 #include "../mtsdata.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -37,23 +40,9 @@ typedef struct {
   } lexer;
 } mtsd_parser;
 
-typedef struct mtsd_field {
-  uint8_t key;
-  uint8_t *value;
-  size_t value_size;
-  struct mtsd_field *next;
-} mtsd_field;
-
-typedef struct mtsd_record {
-  mtsd_field *fields;
-  struct mtsd_record *next;
-} mtsd_record;
-
-typedef struct {
-  mtsd_record* records;
-} mtsd_document;
-
 mtsd_res input_next(mtsd_parser *state);
 mtsd_res lexer_next(mtsd_parser *state);
 void print_token(mtsd_parser *state);
 mtsd_res mtsd_parse(mtsd_read_callback read_callback, void *callback_data, mtsd_document *doc);
+
+#endif

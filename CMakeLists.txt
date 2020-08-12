@@ -17,6 +17,7 @@ add_executable(mtsd
   "src/lang/lexer.c"
   "src/lang/reader.c"
   "src/lang/dumpper.c"
+  "src/encoding.c"
   )
 
 target_link_libraries(mtsd PUBLIC lzma)

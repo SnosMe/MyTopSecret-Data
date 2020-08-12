@@ -8,15 +8,6 @@
 #include "mtsdata.h"
 #include "lang/parser.h"
 
-struct Field {
-  uint32_t key;
-  uint8_t value;
-};
-
-static uint8_t raw_data[] = {
-  2,1,0,115,110,56,115,109,101,64,103,109,97,105,108,46,99,111,109,0,2,0,80,11,116,114,117,55,57,52,53,0,2,1,0,10,97,116,9,108,105,98,121,116,101,64,103,109,97,105,10,46,99,111,109,0,2,0,2,53,57,52,98,110,116,121,0,2,1,0,10,114,46,107,111,108,97,56,4,64,103,109,97,105,108,45,99,111,139,0,2,0,117,105,111,57,57,56,52,63,0,2,3,0,77,65,77,79,72,87,45,83,45,83,72,65,70,84,9,77,0,2,0,55,77,75,57,55,1,49,75,79,71,1,
-};
-
 void mtsd_error(mtsd_error_source src, int error) {
   printf("mtsd_error\n");
 }
@@ -110,29 +101,38 @@ int main() {
   cli_reader_state reader = { .read = 0 };
   readfile("./data.mtsd", &reader.content, &reader.size);
   mtsd_document doc;
-  mtsd_parse(read_handler, &reader, &doc);
+  if (!mtsd_parse(read_handler, &reader, &doc)) {
+    printf("Cannot parse file\n");
+    exit(1);
+  }
   free(reader.content);
 
+  size_t raw_size;
   uint8_t* out = malloc(MTSD_HEADER_SIZE + MTSD_PAYLOAD_MAX_SIZE);
-  memcpy(out + MTSD_HEADER_SIZE, raw_data, sizeof(raw_data));
+  if (!mtsd_encode(&doc, out + MTSD_HEADER_SIZE, &raw_size)) {
+    printf("Cannot encode file to binary format\n");
+    exit(1);
+  }
+  // @TODO free(doc)
 
-  // hexDump("raw", out + MTSD_HEADER_SIZE, sizeof(raw_data));
+  hexDump("raw", out + MTSD_HEADER_SIZE, raw_size);
 
   size_t compressed_size;
-  if (compress_data(out + MTSD_HEADER_SIZE, sizeof(raw_data), &compressed_size) != 0) {
+  if (compress_data(out + MTSD_HEADER_SIZE, raw_size, &compressed_size) != 0) {
     printf("compress_data ERR\n");
     return 1;
   }
-  memset(out + MTSD_HEADER_SIZE + compressed_size, 0, sizeof(raw_data) - compressed_size);
+  memset(out + MTSD_HEADER_SIZE + compressed_size, 0x00, raw_size - compressed_size);
 
-  encrypt(out + MTSD_HEADER_SIZE, compressed_size, "password", sizeof("password"), out + MTSD_HEADER_SIZE - MTSD_RANDOM_BYTES);
+  printf("(%zu - %zu) = saved: %zu B, ratio: %zu%\n", raw_size, compressed_size, raw_size - compressed_size, compressed_size * 100 / raw_size);
+  hexDump("lzma", out + MTSD_HEADER_SIZE, raw_size);
 
-  printf("compressed_size: %d B, saved: %d B, ratio: %d%\n", compressed_size, sizeof(raw_data) - compressed_size, compressed_size * 100 / sizeof(raw_data));
-  // hexDump("lzma", out + MTSD_HEADER_SIZE, sizeof(raw_data));
+  // encrypt(out + MTSD_HEADER_SIZE, compressed_size, "password", sizeof("password"), out + MTSD_HEADER_SIZE - MTSD_RANDOM_BYTES);
+  // hexDump("encrypted", out + MTSD_HEADER_SIZE, raw_size);
 
   uint8_t* normal;
-  decompress_data(out + MTSD_HEADER_SIZE, compressed_size, &normal, sizeof(raw_data));
-  hexDump("restored", normal, sizeof(raw_data));
+  decompress_data(out + MTSD_HEADER_SIZE, compressed_size, &normal, raw_size);
+  hexDump("restored", normal, raw_size);
 
   return 0;
 }
