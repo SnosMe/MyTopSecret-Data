@@ -13,7 +13,6 @@ add_executable(mtsd
   "src/main.c"
   "src/compression.c"
   "src/encryption.c"
-  "src/parser.c"
   "src/lang/parser.c"
   "src/lang/lexer.c"
   "src/lang/reader.c"

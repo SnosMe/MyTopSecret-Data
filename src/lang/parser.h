@@ -33,28 +33,27 @@ typedef struct {
     size_t end;
     uint8_t* buffer;
     size_t buffer_size;
+    int consumed;
   } lexer;
 } mtsd_parser;
 
-typedef struct {
+typedef struct mtsd_field {
   uint8_t key;
-  uint8_t* value;
+  uint8_t *value;
   size_t value_size;
+  struct mtsd_field *next;
 } mtsd_field;
 
-typedef struct {
-  uint8_t size;
-  mtsd_field* fields;
+typedef struct mtsd_record {
+  mtsd_field *fields;
+  struct mtsd_record *next;
 } mtsd_record;
 
 typedef struct {
-  size_t size;
   mtsd_record* records;
 } mtsd_document;
 
 mtsd_res input_next(mtsd_parser *state);
 mtsd_res lexer_next(mtsd_parser *state);
 void print_token(mtsd_parser *state);
-
-// TODO REMOVE
-mtsd_res _parse(mtsd_parser *state, mtsd_document *doc);
+mtsd_res mtsd_parse(mtsd_read_callback read_callback, void *callback_data, mtsd_document *doc);

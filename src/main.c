@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "mtsdata.h"
+#include "lang/parser.h"
 
 struct Field {
   uint32_t key;
@@ -108,7 +109,8 @@ int read_handler(void *data, uint8_t *buffer, size_t size, size_t *size_read) {
 int main() {
   cli_reader_state reader = { .read = 0 };
   readfile("./data.mtsd", &reader.content, &reader.size);
-  parse(read_handler, &reader);
+  mtsd_document doc;
+  mtsd_parse(read_handler, &reader, &doc);
   free(reader.content);
 
   uint8_t* out = malloc(MTSD_HEADER_SIZE + MTSD_PAYLOAD_MAX_SIZE);

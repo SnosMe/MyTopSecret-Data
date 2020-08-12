@@ -92,6 +92,12 @@ static void lexer_trim(mtsd_parser *state, size_t max_start, size_t max_end) {
 }
 
 mtsd_res lexer_next(mtsd_parser *state) {
+  if (!state->lexer.consumed) {
+    return MTSD_OK;
+  } else {
+    state->lexer.consumed = 0;
+  }
+
   for (;;) {
     MTSD_CHECK(input_next(state));
     if (state->reader.eof) break;
