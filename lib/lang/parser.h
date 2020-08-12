@@ -1,7 +1,7 @@
 #ifndef MTSD_LANG_PARSER_H
 #define MTSD_LANG_PARSER_H
 
-#include "../mtsdata.h"
+#include "mtsdata.h"
 #include <stddef.h>
 #include <stdint.h>
 

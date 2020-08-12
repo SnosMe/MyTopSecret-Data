@@ -5,8 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "mtsdata.h"
-#include "lang/parser.h"
+#include <mtsdata.h>
 
 void mtsd_error(mtsd_error_source src, int error) {
   printf("mtsd_error\n");
