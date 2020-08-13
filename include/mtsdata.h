@@ -1,7 +1,7 @@
 #ifndef MTS_MTSDATA_H
 #define MTS_MTSDATA_H
 
-#include <inttypes.h>
+#include <stdint.h>
 #include <stddef.h>
 
 #define MTSD_RANDOM_BYTES 16
@@ -12,18 +12,18 @@
 
 #define MTSD_CHECK(result)    if ((result) != MTSD_OK) { return MTSD_ERR; }
 
-typedef enum MTSData_Result {
-  MTSD_ERR = 0,
-  MTSD_OK = 1
+typedef enum {
+  MTSD_ERR = 0, // if (!ok) { handle... }
+  MTSD_OK  = 1, // if (ok) { continue... }
 } mtsd_res;
 
-typedef enum MTSData_Error_Source {
+typedef enum {
   MTSD_ESELF,
   MTSD_EARGON2,
   MTSD_ERANDOMBYTES,
 } mtsd_error_source;
 
-typedef enum MTSData_Error {
+typedef enum {
   MTSD_EMEMORY,
   MTSD_EREADER,
   MTSD_EENCODE_RECORD_SIZE,
@@ -46,21 +46,25 @@ typedef struct {
   mtsd_record* records;
 } mtsd_document;
 
-void mtsd_error(mtsd_error_source src, int error);
-void mtsd_error_msg(mtsd_error_source src, int error, char *msg);
+typedef int (*mtsd_read_callback)(void *data,
+                                  uint8_t *buffer,
+                                  size_t size,
+                                  size_t *size_read);
 
-int compress_data(uint8_t* data, size_t data_size, size_t* compressed_size);
+mtsd_res mtsd_parse(/* In */ mtsd_read_callback read_callback,
+                    /* In */ void *callback_data,
+                    /* Out */ mtsd_document *doc);
 
-int decompress_data(uint8_t* compressed, size_t compressed_size,
-                    uint8_t** data, size_t data_size);
+mtsd_res mtsd_encrypt(/* In */ mtsd_document* doc,
+                      /* In */ uint8_t* password,
+                      /* In */ size_t password_len,
+                      /* Out */ uint8_t** encrypted,
+                      /* Out */ size_t* size);
 
-mtsd_res encrypt(uint8_t* data, size_t data_size,
-                 uint8_t* pwd, size_t pwd_size, uint8_t* random_bytes);
-
-typedef int (*mtsd_read_callback)(void *data, uint8_t *buffer, size_t size, size_t *size_read);
-
-mtsd_res parse(mtsd_read_callback read_callback, void *callback_data);
-
-mtsd_res mtsd_encode(mtsd_document* doc, uint8_t* out, size_t* size);
+mtsd_res mtsd_decrypt(/* In */ uint8_t* encrypted,
+                      /* In */ size_t* size,
+                      /* In */ uint8_t* password,
+                      /* In */ size_t password_len,
+                      /* Out */ mtsd_document *doc);
 
 #endif

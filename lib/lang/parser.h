@@ -43,6 +43,5 @@ typedef struct {
 mtsd_res input_next(mtsd_parser *state);
 mtsd_res lexer_next(mtsd_parser *state);
 void print_token(mtsd_parser *state);
-mtsd_res mtsd_parse(mtsd_read_callback read_callback, void *callback_data, mtsd_document *doc);
 
 #endif
