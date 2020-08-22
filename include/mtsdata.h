@@ -20,12 +20,14 @@ typedef enum {
 typedef enum {
   MTSD_ESELF,
   MTSD_EARGON2,
+  MTSD_ELZMA,
   MTSD_ERANDOMBYTES,
 } mtsd_error_source;
 
 typedef enum {
   MTSD_EMEMORY,
   MTSD_EREADER,
+  MTSD_EINCOMPRESSIBLE_DATA,
   MTSD_EENCODE_RECORD_SIZE,
   MTSD_EENCODE_PAYLOAD_SIZE,
 } mtsd_err;

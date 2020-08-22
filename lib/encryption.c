@@ -1,4 +1,5 @@
 #include "mtsdata.h"
+#include "private.h"
 
 #include <aes.h>
 #include <argon2.h>
@@ -15,9 +16,20 @@ mtsd_res encrypt(uint8_t* data, size_t data_size,
   }
 
   uint8_t derived_bytes[AES_KEYLEN + AES_BLOCKLEN];
-  if (derive_bytes(random_bytes, pwd, pwd_size, derived_bytes) != MTSD_OK) {
-    return MTSD_ERR;
-  }
+  MTSD_CHECK (derive_bytes(random_bytes, pwd, pwd_size, derived_bytes));
+  uint8_t* key = derived_bytes;
+  uint8_t* iv = derived_bytes + AES_KEYLEN;
+
+  struct AES_ctx ctx;
+  AES_init_ctx_iv(&ctx, key, iv);
+  AES_CTR_xcrypt_buffer(&ctx, data, data_size);
+  return MTSD_OK;
+}
+
+mtsd_res decrypt(uint8_t* data, size_t data_size,
+                 uint8_t* pwd, size_t pwd_size, uint8_t* random_bytes) {
+  uint8_t derived_bytes[AES_KEYLEN + AES_BLOCKLEN];
+  MTSD_CHECK (derive_bytes(random_bytes, pwd, pwd_size, derived_bytes));
   uint8_t* key = derived_bytes;
   uint8_t* iv = derived_bytes + AES_KEYLEN;
 
