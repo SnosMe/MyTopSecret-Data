@@ -71,7 +71,7 @@ static mtsd_res input_read_utf8(mtsd_parser *state) {
   return MTSD_OK;
 }
 
-mtsd_res input_next(mtsd_parser *state) {
+mtsd_res mtsd_parser_input_next(mtsd_parser *state) {
   MTSD_CHECK(input_read_utf8(state));
   state->offset += 1;
   if (state->reader.mb_char[0] == '\n') {

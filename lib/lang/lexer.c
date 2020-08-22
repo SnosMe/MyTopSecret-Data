@@ -42,7 +42,7 @@ static mtsd_res lexer_read_key(mtsd_parser *state) {
       MTSD_CHECK(lexer_add(state));
     }
 
-    MTSD_CHECK(input_next(state));
+    MTSD_CHECK(mtsd_parser_input_next(state));
     if (state->reader.eof) return MTSD_OK;
   }
 }
@@ -55,7 +55,7 @@ static mtsd_res lexer_read_value(mtsd_parser *state) {
       MTSD_CHECK(lexer_add(state));
     }
 
-    MTSD_CHECK(input_next(state));
+    MTSD_CHECK(mtsd_parser_input_next(state));
     if (state->reader.eof) return MTSD_OK;
   }
 }
@@ -91,7 +91,7 @@ static void lexer_trim(mtsd_parser *state, size_t max_start, size_t max_end) {
   }
 }
 
-mtsd_res lexer_next(mtsd_parser *state) {
+mtsd_res mtsd_parser_lexer_next(mtsd_parser *state) {
   if (!state->lexer.consumed) {
     return MTSD_OK;
   } else {
@@ -99,7 +99,7 @@ mtsd_res lexer_next(mtsd_parser *state) {
   }
 
   for (;;) {
-    MTSD_CHECK(input_next(state));
+    MTSD_CHECK(mtsd_parser_input_next(state));
     if (state->reader.eof) break;
 
     lexer_clear(state);

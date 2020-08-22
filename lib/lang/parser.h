@@ -40,8 +40,8 @@ typedef struct {
   } lexer;
 } mtsd_parser;
 
-mtsd_res input_next(mtsd_parser *state);
-mtsd_res lexer_next(mtsd_parser *state);
-void print_token(mtsd_parser *state);
+mtsd_res mtsd_parser_input_next(mtsd_parser *state);
+mtsd_res mtsd_parser_lexer_next(mtsd_parser *state);
+void mtsd_parser_print_token(mtsd_parser *state);
 
 #endif

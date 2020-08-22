@@ -77,9 +77,9 @@ mtsd_res mtsd_to_text(/* In */ mtsd_document* doc,
 size_t mtsd_doc_records_count(const mtsd_document* doc);
 size_t mtsd_doc_record_fields_count(const mtsd_record* record);
 int mtsd_doc_field_is_multiline_value(const mtsd_field* field);
-inline void mtsd_doc_init(mtsd_document* doc);
-inline void mtsd_doc_record_init(mtsd_record* record);
-inline void mtsd_doc_field_init(mtsd_field* field);
+void mtsd_doc_init(mtsd_document* doc);
+void mtsd_doc_record_init(mtsd_record* record);
+void mtsd_doc_field_init(mtsd_field* field);
 void mtsd_doc_free(mtsd_document* doc);
 
 #endif

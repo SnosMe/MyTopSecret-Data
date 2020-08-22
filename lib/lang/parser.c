@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "mtsdata.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,9 +32,9 @@ static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
   // @TODO
   field->key = 1;
 
-  size_t is_multiline = 0;
+  int is_multiline = 0;
   for (;;) {
-    MTSD_CHECK(lexer_next(state));
+    MTSD_CHECK(mtsd_parser_lexer_next(state));
 
     if (TOKEN(state).kind == MTSD_VALUE_TOKEN && !is_multiline) {
       field->value = state->lexer.buffer;
@@ -44,7 +45,7 @@ static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
     } else if (TOKEN(state).kind == MTSD_VALUE_MULTILINE_TOKEN) {
       field->value_size += (state->lexer.buffer_size + (is_multiline == 0 ? 0 : 1));
       field->value = realloc(field->value, field->value_size);
-      if (field->value == NULL) {
+      if (!field->value) {
         mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
         return MTSD_ERR;
       }
@@ -62,29 +63,25 @@ static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
 
 static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record) {
   mtsd_field *current = record->fields;
-  if (current == NULL) {
+  if (!current) {
     current = malloc(sizeof(mtsd_field));
-    if (current == NULL) {
+    if (!current) {
       mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
       return MTSD_ERR;
     }
     record->fields = current;
   } else {
-    while (current->next != NULL) {
+    while (current->next) {
       current = current->next;
     }
     current->next = malloc(sizeof(mtsd_field));
-    if (current->next == NULL) {
+    if (!current->next) {
       mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
       return MTSD_ERR;
     }
     current = current->next;
   }
-
-  current->key = 0;
-  current->value = NULL;
-  current->value_size = 0;
-  current->next = NULL;
+  mtsd_doc_field_init(current);
 
   MTSD_CHECK(parse_field(state, current));
   return MTSD_OK;
@@ -92,27 +89,25 @@ static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record) {
 
 static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc) {
   mtsd_record *current = malloc(sizeof(mtsd_record));
-  if (current == NULL) {
+  if (!current) {
     mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
     return MTSD_ERR;
   }
-  current->fields = NULL;
-  current->next = NULL;
   doc->records = current;
+  mtsd_doc_record_init(current);
 
   for (;;) {
-    MTSD_CHECK(lexer_next(state));
+    MTSD_CHECK(mtsd_parser_lexer_next(state));
     if (TOKEN(state).kind == MTSD_STREAM_END_TOKEN) return MTSD_OK;
 
     if (TOKEN(state).kind == MTSD_RECORD_SEPARATOR_TOKEN) {
       current->next = malloc(sizeof(mtsd_record));
-      if (current->next == NULL) {
+      if (!current->next) {
         mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
         return MTSD_ERR;
       }
       current = current->next;
-      current->fields = NULL;
-      current->next = NULL;
+      mtsd_doc_record_init(current);
       state->lexer.consumed = 1;
     } else {
       MTSD_CHECK(parse_record(state, current));
@@ -130,14 +125,15 @@ mtsd_res mtsd_parse(mtsd_read_callback read_callback, void *callback_data, mtsd_
   state.column = 0;
   state.lexer.consumed = 1;
 
+  mtsd_doc_init(doc);
   MTSD_CHECK(parse_doc(&state, doc));
 
   // for (;;) {
-  //   MTSD_CHECK(lexer_next(state));
+  //   MTSD_CHECK(mtsd_parser_lexer_next(state));
   //   if (TOKEN(state).kind == MTSD_STREAM_END_TOKEN) {
   //     break;
   //   } else {
-  //     print_token(state);
+  //     mtsd_parser_print_token(state);
   //     state->lexer.consumed = 1;
   //   }
   // }

@@ -1,7 +1,7 @@
 #include "parser.h"
 #include <stdio.h>
 
-void print_token(mtsd_parser *state) {
+void mtsd_parser_print_token(mtsd_parser *state) {
   mtsd_token_kind tok_kind = state->lexer.kind;
   size_t start = state->lexer.start;
   size_t end = state->lexer.end;
