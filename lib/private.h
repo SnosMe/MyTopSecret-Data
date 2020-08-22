@@ -1,5 +1,23 @@
 #include "mtsdata.h"
 
+#define MTSD_CHECK(result)        if ((result) != MTSD_OK) {\
+                                    return MTSD_ERR;\
+                                  }
+
+#define MTSD_MALLOC(var, size)    (var) = malloc((size));\
+                                  if (!(var)) {\
+                                    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);\
+                                    return MTSD_ERR;\
+                                  }
+
+#define MTSD_REALLOC(var, size)   (var) = realloc((var), (size));\
+                                  if (!(var)) {\
+                                    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);\
+                                    return MTSD_ERR;\
+                                  }
+
+#define MTSD_FREE(var)            free((var));
+
 void mtsd_error(mtsd_error_source src, int error);
 void mtsd_error_msg(mtsd_error_source src, int error, char *msg);
 

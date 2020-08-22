@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "../private.h"
 
 #define UTF8_LEN(bytes)    (((bytes)[0] & 0x80) == 0x00 ? 1 : \
                             ((bytes)[0] & 0xE0) == 0xC0 ? 2 : \

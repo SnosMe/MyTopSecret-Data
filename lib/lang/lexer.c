@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "../private.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -13,11 +14,7 @@ static void lexer_trim(mtsd_parser *state, size_t max_start, size_t max_end);
 static mtsd_res lexer_add (mtsd_parser *state) {
   state->lexer.end += 1;
   size_t len = state->reader.mb_size;
-  state->lexer.buffer = realloc(state->lexer.buffer, state->lexer.buffer_size + len);
-  if (state->lexer.buffer == NULL) {
-    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-    return MTSD_ERR;
-  }
+  MTSD_REALLOC(state->lexer.buffer, state->lexer.buffer_size + len);
   memcpy(state->lexer.buffer + state->lexer.buffer_size, state->reader.mb_char, len);
   state->lexer.buffer_size += len;
   return MTSD_OK;

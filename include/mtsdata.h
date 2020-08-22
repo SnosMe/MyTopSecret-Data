@@ -1,5 +1,5 @@
-#ifndef MTS_MTSDATA_H
-#define MTS_MTSDATA_H
+#ifndef _LIB_MTSD_H_
+#define _LIB_MTSD_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -9,8 +9,6 @@
 #define MTSD_CRC_SIZE 2
 #define MTSD_HEADER_SIZE (MTSD_RANDOM_BYTES + MTSD_TIMESTAMP_SIZE + MTSD_CRC_SIZE)
 #define MTSD_PAYLOAD_MAX_SIZE 0xFFFF
-
-#define MTSD_CHECK(result)    if ((result) != MTSD_OK) { return MTSD_ERR; }
 
 typedef enum {
   MTSD_ERR = 0, // if (!ok) { handle... }

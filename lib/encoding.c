@@ -62,21 +62,13 @@ mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
   for (size_t i = 0; i < size;) {
     mtsd_record *record = doc->records;
     if (!record) {
-      record = malloc(sizeof(mtsd_record));
-      if (!record) {
-        mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-        return MTSD_ERR;
-      }
+      MTSD_MALLOC(record, sizeof(mtsd_record));
       doc->records = record;
     } else {
       while (record->next != NULL) {
         record = record->next;
       }
-      record->next = malloc(sizeof(mtsd_record));
-      if (!record->next) {
-        mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-        return MTSD_ERR;
-      }
+      MTSD_MALLOC(record->next, sizeof(mtsd_record));
       record = record->next;
     }
     record->next = NULL;
@@ -93,21 +85,13 @@ mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
 
       mtsd_field *field = record->fields;
       if (!field) {
-        field = malloc(sizeof(mtsd_field));
-        if (!field) {
-          mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-          return MTSD_ERR;
-        }
+        MTSD_MALLOC(field, sizeof(mtsd_field));
         record->fields = field;
       } else {
         while (field->next != NULL) {
           field = field->next;
         }
-        field->next = malloc(sizeof(mtsd_field));
-        if (!field) {
-          mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-          return MTSD_ERR;
-        }
+        MTSD_MALLOC(field->next, sizeof(mtsd_field));
         field = field->next;
       }
       field->next = NULL;
@@ -121,11 +105,7 @@ mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
       for (; i < size; i += 1) {
         if (data[i] == STR_TERMINATOR) {
           if (field->value_size) {
-            field->value = malloc(field->value_size);
-            if (!field->value) {
-              mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-              return MTSD_ERR;
-            }
+            MTSD_MALLOC(field->value, field->value_size);
             memcpy(field->value, data + i - field->value_size, field->value_size);
           }
           break;

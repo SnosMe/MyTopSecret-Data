@@ -1,5 +1,5 @@
 #include "parser.h"
-#include "mtsdata.h"
+#include "../private.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -44,11 +44,7 @@ static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
       return MTSD_OK;
     } else if (TOKEN(state).kind == MTSD_VALUE_MULTILINE_TOKEN) {
       field->value_size += (state->lexer.buffer_size + (is_multiline == 0 ? 0 : 1));
-      field->value = realloc(field->value, field->value_size);
-      if (!field->value) {
-        mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-        return MTSD_ERR;
-      }
+      MTSD_REALLOC(field->value, field->value_size);
       if (is_multiline) {
         field->value[field->value_size - state->lexer.buffer_size - 1] = '\n';
       }
@@ -64,21 +60,13 @@ static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
 static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record) {
   mtsd_field *current = record->fields;
   if (!current) {
-    current = malloc(sizeof(mtsd_field));
-    if (!current) {
-      mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-      return MTSD_ERR;
-    }
+    MTSD_MALLOC(current, sizeof(mtsd_field));
     record->fields = current;
   } else {
     while (current->next) {
       current = current->next;
     }
-    current->next = malloc(sizeof(mtsd_field));
-    if (!current->next) {
-      mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-      return MTSD_ERR;
-    }
+    MTSD_MALLOC(current->next, sizeof(mtsd_field));
     current = current->next;
   }
   mtsd_doc_field_init(current);
@@ -88,11 +76,8 @@ static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record) {
 }
 
 static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc) {
-  mtsd_record *current = malloc(sizeof(mtsd_record));
-  if (!current) {
-    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-    return MTSD_ERR;
-  }
+  mtsd_record *current = NULL;
+  MTSD_MALLOC(current, sizeof(mtsd_field));
   doc->records = current;
   mtsd_doc_record_init(current);
 
@@ -101,11 +86,7 @@ static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc) {
     if (TOKEN(state).kind == MTSD_STREAM_END_TOKEN) return MTSD_OK;
 
     if (TOKEN(state).kind == MTSD_RECORD_SEPARATOR_TOKEN) {
-      current->next = malloc(sizeof(mtsd_record));
-      if (!current->next) {
-        mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
-        return MTSD_ERR;
-      }
+      MTSD_MALLOC(current->next, sizeof(mtsd_field));
       current = current->next;
       mtsd_doc_record_init(current);
       state->lexer.consumed = 1;
