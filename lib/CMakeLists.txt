@@ -10,6 +10,7 @@ target_sources(mtsd PRIVATE
   "compression.c"
   "encryption.c"
   "container.c"
+  "document.c"
   "lang/reader.c"
   "lang/lexer.c"
   "lang/parser.c"
