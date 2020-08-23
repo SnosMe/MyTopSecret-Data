@@ -1,3 +1,4 @@
+#include "mtsdata.h"
 #include "private.h"
 #include "lang/parser.h"
 #include <string.h>
@@ -88,6 +89,9 @@ static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* 
 
       field->key = data[i];
       i += KEY_SIZE;
+      if (!mtsd_doc_is_valid_keyid(field->key)) {
+        mtsd_error(MTSD_ESELF, MTSD_EDECODE_CORRUPTED_PAYLOAD, "invalid keyid");
+      }
 
       for (; i < size; i += 1) {
         if (data[i] == STR_TERMINATOR) {
@@ -128,8 +132,8 @@ static inline mtsd_res mtsd_to_text__(mtsd_document* doc, uint8_t** out, size_t*
   while (record) {
     mtsd_field* field = record->fields;
     while (field) {
-      char* key = "my_key";
-      size_t key_len = 6;
+      char* key = mtsd_doc_keyid_to_string(field->key);
+      size_t key_len = strlen(key);
       MTSD_REALLOC(buf, written + key_len + 2);
       memcpy(buf + written, key, key_len);
       written += key_len;

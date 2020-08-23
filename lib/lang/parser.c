@@ -1,6 +1,5 @@
 #include "parser.h"
 #include "../private.h"
-#include <stdlib.h>
 #include <string.h>
 
 #define TOKEN(state)    ((state)->lexer)
@@ -9,13 +8,6 @@ static mtsd_res parser_unexpected();
 static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field);
 static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record);
 static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc);
-
-static char* MTSD_KEYS[] = {
-  "__NULL",
-  "email",
-  "password",
-  "login",
-};
 
 static mtsd_res parser_unexpected() {
   // TODO err_msg
@@ -29,8 +21,11 @@ static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
     state->lexer.consumed = 1;
   }
 
-  // @TODO
-  field->key = 1;
+  field->key = mtsd_doc_get_key_id(state->lexer.buffer, state->lexer.buffer_size);
+  if (!field->key) {
+    mtsd_error(MTSD_ESELF, MTSD_EPARSE_UNKNOWN_KEY, "unknown key");
+    return MTSD_ERR;
+  }
 
   int is_multiline = 0;
   for (;;) {
