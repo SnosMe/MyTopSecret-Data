@@ -9,6 +9,7 @@ typedef struct {
   uint16_t crc16;
   uint16_t date;
   uint8_t random_bytes[MTSD_RANDOM_BYTES];
+  uint8_t is_compressed;
 } mtsd_header;
 #pragma pack(pop)
 
@@ -21,14 +22,25 @@ mtsd_res mtsd_encrypt(mtsd_document* doc,
                       uint8_t** encrypted,
                       size_t* size) {
   uint8_t* out = NULL;
+  uint8_t* encoded = NULL;
+
   MTSD_MALLOC(out, sizeof(mtsd_header) + MTSD_PAYLOAD_MAX_SIZE);
 
-  size_t encoded_size = MTSD_PAYLOAD_MAX_SIZE;
-  MTSD_CHECK_GOTO(mtsd_encode(doc, out + sizeof(mtsd_header), &encoded_size), error);
+  size_t encoded_size = 0;
+  MTSD_CHECK_GOTO(mtsd_encode(doc, &encoded, &encoded_size), error);
+  if (encoded_size > MTSD_PAYLOAD_MAX_SIZE) {
+    mtsd_error(MTSD_ESELF, MTSD_EENCODE_PAYLOAD_SIZE, NULL);
+    goto error;
+  }
 
+  memcpy(out + sizeof(mtsd_header), encoded, encoded_size);
   *size = encoded_size;
-  MTSD_CHECK_GOTO(mtsd_compress_payload(out + sizeof(mtsd_header), size), error);
-  memset(out + sizeof(mtsd_header) + *size, 0x00, encoded_size - *size);
+  MTSD_CHECK_GOTO(mtsd_compress_payload(out + sizeof(mtsd_header), size, &((mtsd_header*)out)->is_compressed), error);
+  if (!((mtsd_header*)out)->is_compressed) {
+    memcpy(out + sizeof(mtsd_header), encoded, encoded_size);
+    *size = encoded_size;
+  }
+  MTSD_FREE(encoded);
 
   MTSD_CHECK_GOTO(mtsd_encrypt_payload(out + sizeof(mtsd_header), *size, password, password_len, ((mtsd_header*)out)->random_bytes), error);
 
@@ -41,6 +53,7 @@ mtsd_res mtsd_encrypt(mtsd_document* doc,
 
 error:
   MTSD_FREE(out);
+  MTSD_FREE(encoded);
   return MTSD_ERR;
 }
 
@@ -57,17 +70,21 @@ mtsd_res mtsd_decrypt(uint8_t* encrypted,
 
   MTSD_CHECK_GOTO(mtsd_decrypt_payload(cloned, size - sizeof(mtsd_header), password, password_len, ((mtsd_header*)encrypted)->random_bytes), error);
 
-  encoded = mtsd_malloc(MTSD_PAYLOAD_MAX_SIZE);
-  if (!encoded) {
-    mtsd_error(MTSD_ESELF, MTSD_EMEMORY, NULL);
-    goto error;
-  }
-  size_t encoded_size = MTSD_PAYLOAD_MAX_SIZE;
-  MTSD_CHECK_GOTO(mtsd_decompress_payload(cloned, size - sizeof(mtsd_header), encoded, &encoded_size), error);
-  MTSD_FREE(cloned);
+  if (((mtsd_header*)encrypted)->is_compressed) {
+    encoded = mtsd_malloc(MTSD_PAYLOAD_MAX_SIZE);
+    if (!encoded) {
+      mtsd_error(MTSD_ESELF, MTSD_EMEMORY, NULL);
+      goto error;
+    }
+    size_t encoded_size = MTSD_PAYLOAD_MAX_SIZE;
+    MTSD_CHECK_GOTO(mtsd_decompress_payload(cloned, size - sizeof(mtsd_header), encoded, &encoded_size), error);
+    MTSD_FREE(cloned);
 
-  MTSD_CHECK_GOTO(mtsd_decode(encoded, encoded_size, doc), error);
-  MTSD_FREE(encoded);
+    MTSD_CHECK_GOTO(mtsd_decode(encoded, encoded_size, doc), error);
+    MTSD_FREE(encoded);
+  } else {
+    MTSD_CHECK_GOTO(mtsd_decode(cloned, size - sizeof(mtsd_header), doc), error);
+  }
 
   return MTSD_OK;
 

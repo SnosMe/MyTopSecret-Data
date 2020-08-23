@@ -8,36 +8,32 @@
 #define STR_TERMINATOR_SIZE 1
 #define STR_TERMINATOR '\0'
 
-mtsd_res mtsd_encode(mtsd_document* doc, uint8_t* out, size_t* size) {
+mtsd_res mtsd_encode__(mtsd_document* doc, uint8_t** out, size_t* size) {
+  #define buf (*out)
   size_t written = 0;
+  buf = NULL;
 
   mtsd_record* record = doc->records;
   while (record) {
     size_t fields_num = mtsd_doc_record_fields_count(record);
     if (fields_num > 0xFF) {
-      mtsd_error(MTSD_ESELF, MTSD_EENCODE_RECORD_SIZE, NULL);
+      mtsd_error(MTSD_ESELF, MTSD_EENCODE_RECORD_SIZE, "maximum 255 fields per record");
       return MTSD_ERR;
     }
 
     if (fields_num) {
-      if ((written + RECORD_SIZE) > *size) {
-        mtsd_error(MTSD_ESELF, MTSD_EENCODE_PAYLOAD_SIZE, NULL);
-        return MTSD_ERR;
-      }
-      out[written] = fields_num;
+      MTSD_REALLOC(buf, written + RECORD_SIZE);
+      buf[written] = fields_num;
       written += RECORD_SIZE;
     }
     mtsd_field* field = record->fields;
     while (field) {
-      if ((written + KEY_SIZE + field->value_size + STR_TERMINATOR_SIZE) > *size) {
-        mtsd_error(MTSD_ESELF, MTSD_EENCODE_PAYLOAD_SIZE, NULL);
-        return MTSD_ERR;
-      }
-      out[written] = field->key;
+      MTSD_REALLOC(buf, written + KEY_SIZE + field->value_size + STR_TERMINATOR_SIZE);
+      buf[written] = field->key;
       written += KEY_SIZE;
-      memcpy(out + written, field->value, field->value_size);
+      memcpy(buf + written, field->value, field->value_size);
       written += field->value_size;
-      out[written] = STR_TERMINATOR;
+      buf[written] = STR_TERMINATOR;
       written += STR_TERMINATOR_SIZE;
 
       field = field->next;
@@ -45,9 +41,19 @@ mtsd_res mtsd_encode(mtsd_document* doc, uint8_t* out, size_t* size) {
 
     record = record->next;
   }
+  #undef buf
 
   *size = written;
   return MTSD_OK;
+}
+
+mtsd_res mtsd_encode(mtsd_document* doc, uint8_t** out, size_t* size) {
+  *out = NULL;
+  if (!mtsd_encode__(doc, out, size)) {
+    MTSD_FREE(*out);
+    return MTSD_ERR;
+  }
+  return MTSD_OK;  
 }
 
 static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* doc) {
@@ -91,6 +97,7 @@ static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* 
       i += KEY_SIZE;
       if (!mtsd_doc_is_valid_keyid(field->key)) {
         mtsd_error(MTSD_ESELF, MTSD_EDECODE_CORRUPTED_PAYLOAD, "invalid keyid");
+        return MTSD_ERR;
       }
 
       for (; i < size; i += 1) {

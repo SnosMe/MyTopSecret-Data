@@ -28,15 +28,16 @@
                                   (var) = NULL;
 
 mtsd_res mtsd_encode(/* In */ mtsd_document* doc,
-                     /* In Out */ uint8_t* out,
-                     /* In Out */ size_t* size);
+                     /* Out */ uint8_t** out,
+                     /* Out */ size_t* size);
 
 mtsd_res mtsd_decode(/* In */ uint8_t* data,
                      /* In */ size_t size,
                      /* In Out */ mtsd_document* doc);
 
 mtsd_res mtsd_compress_payload(/* In Out */ uint8_t* data,
-                               /* In Out */ size_t* size);
+                               /* In Out */ size_t* size,
+                               /* Out */ uint8_t* is_compressed);
 
 mtsd_res mtsd_decompress_payload(/* In */ uint8_t* compressed,
                                  /* In */ size_t compressed_size,

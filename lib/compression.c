@@ -11,7 +11,7 @@ static void SzFree(ISzAllocPtr p, void* address) {
 }
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
-mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size) {
+mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size, uint8_t* is_compressed) {
   size_t data_size = *size;
   CLzmaEncProps props;
   LzmaEncProps_Init(&props);
@@ -31,13 +31,15 @@ mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size) {
     &props, props_encoded, &props_encoded_size, 0, NULL, &g_Alloc, &g_Alloc);
 
   if (res != SZ_OK) {
-    mtsd_error(MTSD_ELZMA, res, NULL);
-    return MTSD_ERR;
+    if (res == SZ_ERROR_OUTPUT_EOF) {
+      *is_compressed = 0;
+      return MTSD_OK;
+    } else {
+      mtsd_error(MTSD_ELZMA, res, NULL);
+      return MTSD_ERR;
+    }
   }
-  else if (*size == data_size) {
-    mtsd_error(MTSD_ESELF, MTSD_EINCOMPRESSIBLE_DATA, NULL);
-    return MTSD_ERR;
-  }
+  *is_compressed = 1;
   return MTSD_OK;
 }
 
