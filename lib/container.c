@@ -1,14 +1,19 @@
 #include "mtsdata.h"
 #include "private.h"
+#include <stddef.h>
 #include <string.h>
+#include <time.h>
 
 #pragma pack(push, 1)
 typedef struct {
-  uint16_t date;
   uint16_t crc16;
+  uint16_t date;
   uint8_t random_bytes[MTSD_RANDOM_BYTES];
 } mtsd_header;
 #pragma pack(pop)
+
+static uint16_t crc16(uint8_t* data, size_t size);
+static uint16_t get_date_now ();
 
 mtsd_res mtsd_encrypt(mtsd_document* doc,
                       uint8_t* password,
@@ -26,6 +31,9 @@ mtsd_res mtsd_encrypt(mtsd_document* doc,
   memset(out + sizeof(mtsd_header) + *size, 0x00, encoded_size - *size);
 
   MTSD_CHECK_GOTO(mtsd_encrypt_payload(out + sizeof(mtsd_header), *size, password, password_len, ((mtsd_header*)out)->random_bytes), error);
+
+  ((mtsd_header*)out)->date = get_date_now();
+  ((mtsd_header*)out)->crc16 = crc16(out + 2, sizeof(mtsd_header) + *size - 2);
 
   *encrypted = (uint8_t*)out;
   *size = (sizeof(mtsd_header) + *size);
@@ -67,4 +75,37 @@ error:
   MTSD_FREE(cloned);
   MTSD_FREE(encoded);
   return MTSD_ERR;
+}
+
+/*
+  Name  : CRC-16/CCITT-FALSE
+  Poly  : 0x1021
+  Init  : 0xFFFF
+  RefIn : false
+  RefOut: false
+  XorOut: 0x0000
+  Check : 0x29B1
+*/
+static uint16_t crc16 (uint8_t* data, size_t size) {
+  uint16_t crc = 0xFFFF;
+
+  while(size--)
+  {
+    crc ^= *(data++) << 8;
+
+    for (unsigned i = 0; i < 8; i += 1)
+      crc = (crc & 0x8000)
+        ? (crc << 1) ^ 0x1021
+        : crc << 1;
+  }
+
+  return crc;
+}
+
+static uint16_t get_date_now () {
+  time_t t = time(NULL);
+  struct tm* local = localtime(&t);
+  uint16_t delta_y = local->tm_year + 1900 - MTSD_DATE_FROM;
+  uint16_t delta_d = (delta_y * 366) + (local->tm_yday + 1);
+  return delta_d;
 }

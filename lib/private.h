@@ -2,6 +2,7 @@
 
 #define MTSD_RANDOM_BYTES 16
 #define MTSD_PAYLOAD_MAX_SIZE 0xFFFF
+#define MTSD_DATE_FROM 1999
 
 #define MTSD_CHECK(result)        if ((result) != MTSD_OK) {\
                                     return MTSD_ERR;\
