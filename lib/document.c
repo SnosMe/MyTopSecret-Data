@@ -1,5 +1,4 @@
-#include "mtsdata.h"
-#include <stdlib.h>
+#include "private.h"
 
 size_t mtsd_doc_records_count(const mtsd_document* doc) {
   size_t records_num = 0;
@@ -52,16 +51,16 @@ void mtsd_doc_free(mtsd_document* doc) {
     mtsd_field* field = record->fields;
     while (field) {
       if (field->value) {
-        free(field->value);
+        MTSD_FREE(field->value);
       }
 
       mtsd_field* next = field->next;
-      free(field);
+      MTSD_FREE(field);
       field = next;
     }
 
     mtsd_record* next = record->next;
-    free(record);
+    MTSD_FREE(record);
     record = next;
   }
 

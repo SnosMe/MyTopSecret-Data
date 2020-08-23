@@ -10,7 +10,7 @@ static mtsd_res input_read_utf8(mtsd_parser *state) {
   size_t read;
   uint8_t *buff = state->reader.mb_char;
   if (!state->input.callback(state->input.data, buff, 1, &read)) {
-    mtsd_error(MTSD_ESELF, MTSD_EREADER);
+    mtsd_error(MTSD_ESELF, MTSD_EREADER, NULL);
     return MTSD_ERR;
   }
 
@@ -23,15 +23,15 @@ static mtsd_res input_read_utf8(mtsd_parser *state) {
     state->reader.mb_size = width;
 
     if (!width) {
-      mtsd_error_msg(MTSD_ESELF, MTSD_EREADER, "invalid leading UTF-8 octet");
+      mtsd_error(MTSD_ESELF, MTSD_EREADER, "invalid leading UTF-8 octet");
       return MTSD_ERR;
     } else if (width > 1) {
       if (!state->input.callback(state->input.data, buff + 1, width - 1, &read)) {
-        mtsd_error(MTSD_ESELF, MTSD_EREADER);
+        mtsd_error(MTSD_ESELF, MTSD_EREADER, NULL);
         return MTSD_ERR;
       }
       if (read != (width - 1)) {
-        mtsd_error_msg(MTSD_ESELF, MTSD_EREADER, "incomplete UTF-8 octet sequence");
+        mtsd_error(MTSD_ESELF, MTSD_EREADER, "incomplete UTF-8 octet sequence");
         return MTSD_ERR;
       }
     }
@@ -46,7 +46,7 @@ static mtsd_res input_read_utf8(mtsd_parser *state) {
     {
       octet = buff[k];
       if ((octet & 0xC0) != 0x80) {
-        mtsd_error_msg(MTSD_ESELF, MTSD_EREADER, "invalid trailing UTF-8 octet");
+        mtsd_error(MTSD_ESELF, MTSD_EREADER, "invalid trailing UTF-8 octet");
         return MTSD_ERR;
       } else {
         value = (value << 6) + (octet & 0x3F);
@@ -59,12 +59,12 @@ static mtsd_res input_read_utf8(mtsd_parser *state) {
       (width == 3 && value >= 0x800) ||
       (width == 4 && value >= 0x10000)
     )) {
-      mtsd_error_msg(MTSD_ESELF, MTSD_EREADER, "invalid length of a UTF-8 sequence");
+      mtsd_error(MTSD_ESELF, MTSD_EREADER, "invalid length of a UTF-8 sequence");
       return MTSD_ERR;
     }
 
     if ((value >= 0xD800 && value <= 0xDFFF) || value > 0x10FFFF) {
-      mtsd_error_msg(MTSD_ESELF, MTSD_EREADER, "invalid Unicode character");
+      mtsd_error(MTSD_ESELF, MTSD_EREADER, "invalid Unicode character");
       return MTSD_ERR;
     }
   }

@@ -52,6 +52,11 @@ typedef int (*mtsd_read_callback)(void *data,
                                   size_t size,
                                   size_t *size_read);
 
+extern void mtsd_error(mtsd_error_source src, int error, char *msg);
+extern void* mtsd_malloc(size_t size);
+extern void* mtsd_realloc(void* ptr, size_t size);
+extern void mtsd_free(void* ptr);
+
 mtsd_res mtsd_parse(/* In */ mtsd_read_callback read_callback,
                     /* In */ void *callback_data,
                     /* Out */ mtsd_document *doc);

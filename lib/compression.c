@@ -1,15 +1,13 @@
-#include "mtsdata.h"
 #include "private.h"
 
-#include <stdlib.h>
 #include <LzmaEnc.h>
 #include <LzmaDec.h>
 
 static void* SzAlloc(ISzAllocPtr p, size_t size) {
-  return malloc(size);
+  return mtsd_malloc(size);
 }
 static void SzFree(ISzAllocPtr p, void* address) {
-  free(address);
+  mtsd_free(address);
 }
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
@@ -33,11 +31,11 @@ mtsd_res compress_data(uint8_t* data, size_t* size) {
     &props, props_encoded, &props_encoded_size, 0, NULL, &g_Alloc, &g_Alloc);
 
   if (res != SZ_OK) {
-    mtsd_error(MTSD_ELZMA, res);
+    mtsd_error(MTSD_ELZMA, res, NULL);
     return MTSD_ERR;
   }
   else if (*size == data_size) {
-    mtsd_error(MTSD_ESELF, MTSD_EINCOMPRESSIBLE_DATA);
+    mtsd_error(MTSD_ESELF, MTSD_EINCOMPRESSIBLE_DATA, NULL);
     return MTSD_ERR;
   }
   return MTSD_OK;
@@ -59,7 +57,7 @@ mtsd_res decompress_data(uint8_t* compressed, size_t compressed_size, uint8_t* d
     props_encoded, LZMA_PROPS_SIZE, LZMA_FINISH_ANY, &status, &g_Alloc);
 
   if (res != SZ_OK && status != LZMA_STATUS_NEEDS_MORE_INPUT) {
-    mtsd_error(MTSD_ELZMA, res);
+    mtsd_error(MTSD_ELZMA, res, NULL);
     return MTSD_ERR;
   }
   return MTSD_OK;

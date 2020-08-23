@@ -1,8 +1,6 @@
-#include "mtsdata.h"
 #include "private.h"
 #include "lang/parser.h"
 #include <string.h>
-#include <stdlib.h>
 
 #define RECORD_SIZE 1
 #define KEY_SIZE 1
@@ -16,13 +14,13 @@ mtsd_res mtsd_encode(mtsd_document* doc, uint8_t* out, size_t* size) {
   while (record) {
     size_t fields_num = mtsd_doc_record_fields_count(record);
     if (fields_num > 0xFF) {
-      mtsd_error(MTSD_ESELF, MTSD_EENCODE_RECORD_SIZE);
+      mtsd_error(MTSD_ESELF, MTSD_EENCODE_RECORD_SIZE, NULL);
       return MTSD_ERR;
     }
 
     if (fields_num) {
       if ((written + RECORD_SIZE) > *size) {
-        mtsd_error(MTSD_ESELF, MTSD_EENCODE_PAYLOAD_SIZE);
+        mtsd_error(MTSD_ESELF, MTSD_EENCODE_PAYLOAD_SIZE, NULL);
         return MTSD_ERR;
       }
       out[written] = fields_num;
@@ -31,7 +29,7 @@ mtsd_res mtsd_encode(mtsd_document* doc, uint8_t* out, size_t* size) {
     mtsd_field* field = record->fields;
     while (field) {
       if ((written + KEY_SIZE + field->value_size + STR_TERMINATOR_SIZE) > *size) {
-        mtsd_error(MTSD_ESELF, MTSD_EENCODE_PAYLOAD_SIZE);
+        mtsd_error(MTSD_ESELF, MTSD_EENCODE_PAYLOAD_SIZE, NULL);
         return MTSD_ERR;
       }
       out[written] = field->key;
@@ -73,7 +71,7 @@ mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
 
     for (uint8_t field_i = 0; field_i < fields_num; field_i += 1, i += 1) {
       if (i >= size) {
-        mtsd_error(MTSD_ESELF, MTSD_EDECODE_CORRUPTED_PAYLOAD);
+        mtsd_error(MTSD_ESELF, MTSD_EDECODE_CORRUPTED_PAYLOAD, NULL);
         return MTSD_ERR;
       }
 
@@ -105,7 +103,7 @@ mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
         }
       }
       if (data[i] != STR_TERMINATOR) {
-        mtsd_error(MTSD_ESELF, MTSD_EDECODE_CORRUPTED_PAYLOAD);
+        mtsd_error(MTSD_ESELF, MTSD_EDECODE_CORRUPTED_PAYLOAD, NULL);
         return MTSD_ERR;
       }
     }

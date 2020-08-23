@@ -4,19 +4,19 @@
                                     return MTSD_ERR;\
                                   }
 
-#define MTSD_MALLOC(var, size)    (var) = malloc((size));\
+#define MTSD_MALLOC(var, size)    (var) = mtsd_malloc((size));\
                                   if (!(var)) {\
-                                    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);\
+                                    mtsd_error(MTSD_ESELF, MTSD_EMEMORY, NULL);\
                                     return MTSD_ERR;\
                                   }
 
-#define MTSD_REALLOC(var, size)   (var) = realloc((var), (size));\
+#define MTSD_REALLOC(var, size)   (var) = mtsd_realloc((var), (size));\
                                   if (!(var)) {\
-                                    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);\
+                                    mtsd_error(MTSD_ESELF, MTSD_EMEMORY, NULL);\
                                     return MTSD_ERR;\
                                   }
 
-#define MTSD_FREE(var)            free((var));\
+#define MTSD_FREE(var)            mtsd_free((var));\
                                   (var) = NULL;
 
 mtsd_res mtsd_encode(/* In */ mtsd_document* doc,

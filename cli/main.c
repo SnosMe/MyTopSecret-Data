@@ -8,11 +8,17 @@
 #include <mtsdata.h>
 #include <unistd.h>
 
-void mtsd_error(mtsd_error_source src, int error) {
-  printf("mtsd_error %d, %d\n", src, error);
+void mtsd_error(mtsd_error_source src, int error, char* msg) {
+  printf("error [libmtsd]: source - %d; code - %d, message - %s\n", src, error, msg);
 }
-void mtsd_error_msg(mtsd_error_source src, int error, char *msg) {
-  printf("mtsd_error_msg: %s\n", msg);
+void* mtsd_malloc(size_t size) {
+  return malloc(size);
+}
+void* mtsd_realloc(void* ptr, size_t size) {
+  return realloc(ptr, size);
+}
+void mtsd_free(void* ptr) {
+  free(ptr);
 }
 
 void hexDump (const char * desc, const void * addr, const int len) {

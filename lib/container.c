@@ -1,4 +1,3 @@
-#include "mtsdata.h"
 #include "private.h"
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +17,7 @@ mtsd_res mtsd_encrypt(mtsd_document* doc,
                       size_t* size) {
   uint8_t* out = malloc(sizeof(mtsd_header) + MTSD_PAYLOAD_MAX_SIZE);
   if (!out) {
-    mtsd_error(MTSD_ESELF, MTSD_EMEMORY);
+    mtsd_error(MTSD_ESELF, MTSD_EMEMORY, NULL);
     return MTSD_ERR;
   }
 
