@@ -6,7 +6,7 @@
 
 static mtsd_res derive_bytes(uint8_t* random_bytes, uint8_t* pwd, size_t pwd_size, uint8_t* out);
 
-mtsd_res encrypt(uint8_t* data, size_t data_size,
+mtsd_res mtsd_encrypt_payload(uint8_t* data, size_t data_size,
                  uint8_t* pwd, size_t pwd_size, uint8_t* random_bytes) {
   int err = randombytes(random_bytes, MTSD_RANDOM_BYTES);
   if (err != 0) {
@@ -25,7 +25,7 @@ mtsd_res encrypt(uint8_t* data, size_t data_size,
   return MTSD_OK;
 }
 
-mtsd_res decrypt(uint8_t* data, size_t data_size,
+mtsd_res mtsd_decrypt_payload(uint8_t* data, size_t data_size,
                  uint8_t* pwd, size_t pwd_size, uint8_t* random_bytes) {
   uint8_t derived_bytes[AES_KEYLEN + AES_BLOCKLEN];
   MTSD_CHECK (derive_bytes(random_bytes, pwd, pwd_size, derived_bytes));

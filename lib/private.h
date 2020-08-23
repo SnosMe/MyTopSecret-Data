@@ -34,22 +34,22 @@ mtsd_res mtsd_decode(/* In */ uint8_t* data,
                      /* In */ size_t size,
                      /* In Out */ mtsd_document* doc);
 
-mtsd_res compress_data(/* In Out */ uint8_t* data,
-                       /* In Out */ size_t* size);
+mtsd_res mtsd_compress_payload(/* In Out */ uint8_t* data,
+                               /* In Out */ size_t* size);
 
-mtsd_res decompress_data(/* In */ uint8_t* compressed,
-                         /* In */ size_t compressed_size,
-                         /* Out */ uint8_t* data,
-                         /* In Out */ size_t* size);
+mtsd_res mtsd_decompress_payload(/* In */ uint8_t* compressed,
+                                 /* In */ size_t compressed_size,
+                                 /* Out */ uint8_t* data,
+                                 /* In Out */ size_t* size);
 
-mtsd_res encrypt(/* In Out */ uint8_t* data,
-                 /* In */ size_t data_size,
-                 /* In */ uint8_t* pwd,
-                 /* In */ size_t pwd_size,
-                 /* Out */ uint8_t* random_bytes);
+mtsd_res mtsd_encrypt_payload(/* In Out */ uint8_t* data,
+                              /* In */ size_t data_size,
+                              /* In */ uint8_t* pwd,
+                              /* In */ size_t pwd_size,
+                              /* Out */ uint8_t* random_bytes);
 
-mtsd_res decrypt(/* In Out */ uint8_t* data,
-                 /* In */ size_t data_size,
-                 /* In */ uint8_t* pwd,
-                 /* In */ size_t pwd_size,
-                 /* In */ uint8_t* random_bytes);
+mtsd_res mtsd_decrypt_payload(/* In Out */ uint8_t* data,
+                              /* In */ size_t data_size,
+                              /* In */ uint8_t* pwd,
+                              /* In */ size_t pwd_size,
+                              /* In */ uint8_t* random_bytes);

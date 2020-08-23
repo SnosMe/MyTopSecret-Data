@@ -18,35 +18,6 @@ void mtsd_free(void* ptr) {
   free(ptr);
 }
 
-void hexDump (const char * desc, const void * addr, const int len) {
-    int i;
-    unsigned char buff[17];
-    const unsigned char * pc = (const unsigned char *)addr;
-
-    if (desc != NULL)
-        printf ("%s:\n", desc);
-
-    for (i = 0; i < len; i++) {
-        if ((i % 16) == 0) {
-            if (i != 0)
-                printf ("  %s\n", buff);
-            printf ("  %04x ", i);
-        }
-        printf (" %02x", pc[i]);
-        if ((pc[i] < 0x20) || (pc[i] > 0x7e)) // isprint() may be better.
-            buff[i % 16] = '.';
-        else
-            buff[i % 16] = pc[i];
-        buff[(i % 16) + 1] = '\0';
-    }
-
-    while ((i % 16) != 0) {
-        printf ("   ");
-        i++;
-    }
-    printf ("  %s\n", buff);
-}
-
 void read_from_file(const char* filename, uint8_t** content, size_t* size);
 void write_to_file(const char* filename, uint8_t* data, size_t size);
 
@@ -154,8 +125,6 @@ int main(int argc, char **argv) {
 
     printf("Writing %zu bytes to '%s'\n", encrypted_size, output_filename);
     write_to_file(output_filename, encrypted_data, encrypted_size);
-
-    // hexDump("encrypted", encrypted_data, encrypted_size);
   } else {
     uint8_t* encrypted_data = NULL;
     size_t encrypted_size = 0;
@@ -164,6 +133,8 @@ int main(int argc, char **argv) {
     printf("Opening file '%s'\n", input_filename);
 
     char* password = getpass("Password: ");
+
+    printf("Decrypting...\n");
 
     mtsd_document doc;
     if (!mtsd_decrypt(encrypted_data, encrypted_size, (uint8_t*)password, strlen(password), &doc)) {
@@ -183,7 +154,7 @@ int main(int argc, char **argv) {
       printf("Saving %zu records to '%s'\n", mtsd_doc_records_count(&doc), output_filename);
       write_to_file(output_filename, plaintext, text_size);
     } else {
-      printf("%.*s", text_size, plaintext);
+      printf("\n%.*s", text_size, plaintext);
     }
   }
 

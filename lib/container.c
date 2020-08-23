@@ -22,10 +22,10 @@ mtsd_res mtsd_encrypt(mtsd_document* doc,
   MTSD_CHECK_GOTO(mtsd_encode(doc, out + sizeof(mtsd_header), &encoded_size), error);
 
   *size = encoded_size;
-  MTSD_CHECK_GOTO(compress_data(out + sizeof(mtsd_header), size), error);
+  MTSD_CHECK_GOTO(mtsd_compress_payload(out + sizeof(mtsd_header), size), error);
   memset(out + sizeof(mtsd_header) + *size, 0x00, encoded_size - *size);
 
-  MTSD_CHECK_GOTO(encrypt(out + sizeof(mtsd_header), *size, password, password_len, ((mtsd_header*)out)->random_bytes), error);
+  MTSD_CHECK_GOTO(mtsd_encrypt_payload(out + sizeof(mtsd_header), *size, password, password_len, ((mtsd_header*)out)->random_bytes), error);
 
   *encrypted = (uint8_t*)out;
   *size = (sizeof(mtsd_header) + *size);
@@ -47,7 +47,7 @@ mtsd_res mtsd_decrypt(uint8_t* encrypted,
   MTSD_MALLOC(cloned, size - sizeof(mtsd_header));
   memcpy(cloned, encrypted + sizeof(mtsd_header), size - sizeof(mtsd_header));
 
-  MTSD_CHECK_GOTO(decrypt(cloned, size - sizeof(mtsd_header), password, password_len, ((mtsd_header*)encrypted)->random_bytes), error);
+  MTSD_CHECK_GOTO(mtsd_decrypt_payload(cloned, size - sizeof(mtsd_header), password, password_len, ((mtsd_header*)encrypted)->random_bytes), error);
 
   encoded = mtsd_malloc(MTSD_PAYLOAD_MAX_SIZE);
   if (!encoded) {
@@ -55,7 +55,7 @@ mtsd_res mtsd_decrypt(uint8_t* encrypted,
     goto error;
   }
   size_t encoded_size = MTSD_PAYLOAD_MAX_SIZE;
-  MTSD_CHECK_GOTO(decompress_data(cloned, size - sizeof(mtsd_header), encoded, &encoded_size), error);
+  MTSD_CHECK_GOTO(mtsd_decompress_payload(cloned, size - sizeof(mtsd_header), encoded, &encoded_size), error);
   MTSD_FREE(cloned);
 
   MTSD_CHECK_GOTO(mtsd_decode(encoded, encoded_size, doc), error);

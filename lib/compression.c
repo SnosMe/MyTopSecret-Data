@@ -11,7 +11,7 @@ static void SzFree(ISzAllocPtr p, void* address) {
 }
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
-mtsd_res compress_data(uint8_t* data, size_t* size) {
+mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size) {
   size_t data_size = *size;
   CLzmaEncProps props;
   LzmaEncProps_Init(&props);
@@ -41,7 +41,7 @@ mtsd_res compress_data(uint8_t* data, size_t* size) {
   return MTSD_OK;
 }
 
-mtsd_res decompress_data(uint8_t* compressed, size_t compressed_size, uint8_t* data, size_t* size) {
+mtsd_res mtsd_decompress_payload(uint8_t* compressed, size_t compressed_size, uint8_t* data, size_t* size) {
   CLzmaEncProps props;
   props.lc = 0;
   props.lp = 0;
