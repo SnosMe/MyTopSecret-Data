@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdlib.h>
-#include <uchar.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <mtsdata.h>
 #include <unistd.h>
 
@@ -50,49 +47,8 @@ void hexDump (const char * desc, const void * addr, const int len) {
     printf ("  %s\n", buff);
 }
 
-void readfile(const char* filename, uint8_t** content, size_t* size) {  
-  FILE* file = fopen(filename, "rb");
-  if (!file) {
-    printf("Cannot open file '%s'.\n", filename);
-    exit(1);
-  }
-
-  struct stat file_stat;
-  if (fstat(fileno(file), &file_stat) != 0) {
-    printf("Cannot get info about file '%s'.\n", filename);
-    exit(1);
-  }
-
-  *size = file_stat.st_size;
-  *content = malloc(*size);
-  if (*content == NULL) {
-    printf("Cannot allocate memmory to read file.\n");
-    exit(1);
-  }
-
-  int read = fread(*content, sizeof(uint8_t), *size, file);
-  if (read != *size) {
-    printf("Fatal error while reading file.\n");
-    exit(1);
-  }
-
-  fclose(file);
-}
-
-void write_to_file(const char* filename, uint8_t* data, size_t size) {
-  FILE* file = fopen(filename, "wb");
-  if (!file) {
-    printf("Cannot open file '%s'.\n", filename);
-    exit(1);
-  }
-
-  if (fwrite(data, sizeof(uint8_t), size, file) != size) {
-    printf("Fatal error while writing to file.\n");
-    exit(1);
-  }
-
-  fclose(file);
-}
+void read_from_file(const char* filename, uint8_t** content, size_t* size);
+void write_to_file(const char* filename, uint8_t* data, size_t size);
 
 typedef struct {
   uint8_t* content;
@@ -175,7 +131,7 @@ int main(int argc, char **argv) {
 
   if (encrypt) {
     cli_reader_state reader = { .read = 0 };
-    readfile(input_filename, &reader.content, &reader.size);
+    read_from_file(input_filename, &reader.content, &reader.size);
 
     printf("Parsing file '%s' (%zu bytes)\n", input_filename, reader.size);
     mtsd_document doc;
@@ -203,7 +159,7 @@ int main(int argc, char **argv) {
   } else {
     uint8_t* encrypted_data = NULL;
     size_t encrypted_size = 0;
-    readfile(input_filename, &encrypted_data, &encrypted_size);
+    read_from_file(input_filename, &encrypted_data, &encrypted_size);
 
     printf("Opening file '%s'\n", input_filename);
 
