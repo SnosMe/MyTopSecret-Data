@@ -49,9 +49,7 @@ mtsd_res mtsd_encode(mtsd_document* doc, uint8_t* out, size_t* size) {
   return MTSD_OK;
 }
 
-mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
-  mtsd_doc_init(doc);
-
+static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* doc) {
   for (size_t i = 0; i < size;) {
     mtsd_record *record = doc->records;
     if (!record) {
@@ -112,9 +110,19 @@ mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
   return MTSD_OK;
 }
 
-mtsd_res mtsd_to_text(mtsd_document* doc, uint8_t** out, size_t* size) {
+mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
+  mtsd_doc_init(doc);
+  if (!mtsd_decode__(data, size, doc)) {
+    mtsd_doc_free(doc);    
+    return MTSD_ERR;
+  }
+  return MTSD_OK;
+}
+
+static inline mtsd_res mtsd_to_text__(mtsd_document* doc, uint8_t** out, size_t* size) {
+  #define buf (*out)
   size_t written = 0;
-  uint8_t* buf = NULL;
+  buf = NULL;
 
   mtsd_record* record = doc->records;
   while (record) {
@@ -183,8 +191,17 @@ mtsd_res mtsd_to_text(mtsd_document* doc, uint8_t** out, size_t* size) {
 
     record = record->next;
   }
+  #undef buf
 
   *size = written;
-  *out = buf;
   return MTSD_OK;
+}
+
+mtsd_res mtsd_to_text(mtsd_document* doc, uint8_t** out, size_t* size) {
+  *out = NULL;
+  if (!mtsd_to_text__(doc, out, size)) {
+    MTSD_FREE(*out);
+    return MTSD_ERR;
+  }
+  return MTSD_OK;  
 }

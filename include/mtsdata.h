@@ -4,12 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MTSD_RANDOM_BYTES 16
-#define MTSD_TIMESTAMP_SIZE 2
-#define MTSD_CRC_SIZE 2
-#define MTSD_HEADER_SIZE (MTSD_RANDOM_BYTES + MTSD_TIMESTAMP_SIZE + MTSD_CRC_SIZE)
-#define MTSD_PAYLOAD_MAX_SIZE 0xFFFF
-
 typedef enum {
   MTSD_ERR = 0, // if (!ok) { handle... }
   MTSD_OK  = 1, // if (ok) { continue... }

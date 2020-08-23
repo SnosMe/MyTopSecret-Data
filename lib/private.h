@@ -1,8 +1,15 @@
 #include "mtsdata.h"
 
+#define MTSD_RANDOM_BYTES 16
+#define MTSD_PAYLOAD_MAX_SIZE 0xFFFF
+
 #define MTSD_CHECK(result)        if ((result) != MTSD_OK) {\
                                     return MTSD_ERR;\
                                   }
+
+#define MTSD_CHECK_GOTO(result, label)    if ((result) != MTSD_OK) {\
+                                            goto label;\
+                                          }
 
 #define MTSD_MALLOC(var, size)    (var) = mtsd_malloc((size));\
                                   if (!(var)) {\
