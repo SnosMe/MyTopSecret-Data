@@ -1,10 +1,5 @@
 {
-  "files.associations": {
-    "functional": "c",
-    "lzmaenc.h": "c",
-    "array": "c",
-    "string": "c",
-    "string_view": "c",
-    "ranges": "c"
+  "search.exclude": {
+    "libs": true
   }
 }

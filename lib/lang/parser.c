@@ -97,17 +97,41 @@ static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc) {
 }
 
 mtsd_res mtsd_parse(mtsd_read_callback read_callback, void *callback_data, mtsd_document *doc) {
-  mtsd_parser state;
-  memset(&state, 0, sizeof(state));
-  state.input.callback = read_callback;
-  state.input.data = callback_data;
-  state.offset = -1;
-  state.line = 1;
-  state.column = 0;
-  state.lexer.consumed = 1;
+  mtsd_parser state = {
+    .line = 1,
+    .column = 0,
+    .offset = -1,
+
+    .input = {
+      .callback = read_callback,
+      .data = callback_data
+    },
+
+    .reader = {
+      .mb_char = {0, 0, 0, 0},
+      .mb_size = 0,
+      .eof = 0,
+    },
+
+    .lexer = {
+      .kind = MTSD_STREAM_START_TOKEN,
+      .start = 0,
+      .end = 0,
+      .buffer = NULL,
+      .buffer_size = 0,
+      .consumed = 1
+    }
+  };
 
   mtsd_doc_init(doc);
-  MTSD_CHECK(parse_doc(&state, doc));
+  if (!parse_doc(&state, doc)) {
+    mtsd_doc_free(doc);
+    MTSD_FREE(state.lexer.buffer);
+    return MTSD_ERR;
+  } else {
+    MTSD_FREE(state.lexer.buffer);
+    return MTSD_OK;
+  }
 
   // for (;;) {
   //   MTSD_CHECK(mtsd_parser_lexer_next(state));
@@ -118,6 +142,4 @@ mtsd_res mtsd_parse(mtsd_read_callback read_callback, void *callback_data, mtsd_
   //     state->lexer.consumed = 1;
   //   }
   // }
-
-  return MTSD_OK;
 }

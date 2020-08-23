@@ -16,10 +16,8 @@
                                     return MTSD_ERR;\
                                   }
 
-#define MTSD_FREE(var)            free((var));
-
-void mtsd_error(mtsd_error_source src, int error);
-void mtsd_error_msg(mtsd_error_source src, int error, char *msg);
+#define MTSD_FREE(var)            free((var));\
+                                  (var) = NULL;
 
 mtsd_res mtsd_encode(/* In */ mtsd_document* doc,
                      /* In Out */ uint8_t* out,

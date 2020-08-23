@@ -24,7 +24,7 @@ static void lexer_clear(mtsd_parser *state) {
   state->lexer.start = state->offset;
   state->lexer.end = state->offset;
   state->lexer.buffer_size = 0;
-  if (state->lexer.buffer != NULL) {
+  if (state->lexer.buffer) {
     free(state->lexer.buffer);
     state->lexer.buffer = NULL;
   }
