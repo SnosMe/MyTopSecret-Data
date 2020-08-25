@@ -3,7 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mtsdata.h>
-#include <unistd.h>
+
+#define MAX_PASS_SIZE 200
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 void mtsd_error(mtsd_error_source src, int error, char* msg) {
   printf("error [libmtsd]: source - %d; code - %d, message - %s\n", src, error, msg);
@@ -20,6 +25,7 @@ void mtsd_free(void* ptr) {
 
 void read_from_file(const char* filename, uint8_t** content, size_t* size);
 void write_to_file(const char* filename, uint8_t* data, size_t size);
+void getpass(const char* prompt, uint8_t* pass, size_t max, size_t* pass_len);
 
 typedef struct {
   uint8_t* content;
@@ -45,9 +51,13 @@ int read_handler(void *data, uint8_t *buffer, size_t size, size_t *size_read) {
   return 1;
 }
 
-static size_t records_count(mtsd_document* doc);
-
 int main(int argc, char **argv) {
+
+#ifdef _WIN32
+  SetConsoleCP(CP_UTF8);
+  SetConsoleOutputCP(CP_UTF8);
+#endif
+
   if (argc == 1 || !strcmp(argv[1], "--help")) {
     printf(
       "MyTopSecret-Data v1.0 (c) Alexander Drozdov\n"
@@ -114,11 +124,13 @@ int main(int argc, char **argv) {
 
     printf("Encrypting %zu records\n", mtsd_doc_records_count(&doc));
 
-    char* password = getpass("Password: ");
+    uint8_t password[MAX_PASS_SIZE];
+    size_t pass_len;
+    getpass("Password: ", password, MAX_PASS_SIZE, &pass_len);
 
     uint8_t* encrypted_data = NULL;
     size_t encrypted_size = 0;
-    if (!mtsd_encrypt(&doc, (uint8_t*)password, strlen(password), &encrypted_data, &encrypted_size)) {
+    if (!mtsd_encrypt(&doc, password, pass_len, &encrypted_data, &encrypted_size)) {
       printf("Cannot encrypt file\n");
       exit(1);
     }
@@ -132,12 +144,14 @@ int main(int argc, char **argv) {
 
     printf("Opening file '%s'\n", input_filename);
 
-    char* password = getpass("Password: ");
+    uint8_t password[MAX_PASS_SIZE];
+    size_t pass_len;
+    getpass("Password: ", password, MAX_PASS_SIZE, &pass_len);
 
     printf("Decrypting...\n");
 
     mtsd_document doc;
-    if (!mtsd_decrypt(encrypted_data, encrypted_size, (uint8_t*)password, strlen(password), &doc)) {
+    if (!mtsd_decrypt(encrypted_data, encrypted_size, password, pass_len, &doc)) {
       printf("Cannot decrypt file\n");
       exit(1);
     }

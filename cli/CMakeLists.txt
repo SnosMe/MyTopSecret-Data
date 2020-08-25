@@ -1,5 +1,5 @@
 
-add_executable(mtsd-cli "main.c" "file.c")
+add_executable(mtsd-cli "main.c" "file.c" "getpass.c")
 
 target_link_libraries(mtsd-cli PUBLIC mtsd)
 
