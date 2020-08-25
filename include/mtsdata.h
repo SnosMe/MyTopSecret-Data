@@ -23,6 +23,7 @@ typedef enum {
   MTSD_EENCODE_PAYLOAD_SIZE,
   MTSD_EDECODE_CORRUPTED_PAYLOAD,
   MTSD_EPARSE_UNKNOWN_KEY,
+  MTSD_ETIME,
 } mtsd_err;
 
 typedef struct mtsd_field {

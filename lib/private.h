@@ -1,8 +1,9 @@
 #include "mtsdata.h"
 
-#define MTSD_RANDOM_BYTES 16
+#define MTSD_RANDOM_BYTES 4
+#define MTSD_SALT_SIZE 16
 #define MTSD_PAYLOAD_MAX_SIZE 0xFFFF
-#define MTSD_DATE_FROM 1999
+#define MTSD_DATE_FROM 915148800 // 01/01/1999
 
 #define MTSD_CHECK(result)        if ((result) != MTSD_OK) {\
                                     return MTSD_ERR;\
@@ -48,10 +49,12 @@ mtsd_res mtsd_encrypt_payload(/* In Out */ uint8_t* data,
                               /* In */ size_t data_size,
                               /* In */ uint8_t* pwd,
                               /* In */ size_t pwd_size,
-                              /* Out */ uint8_t* random_bytes);
+                              /* In */ uint8_t* salt);
 
 mtsd_res mtsd_decrypt_payload(/* In Out */ uint8_t* data,
                               /* In */ size_t data_size,
                               /* In */ uint8_t* pwd,
                               /* In */ size_t pwd_size,
-                              /* In */ uint8_t* random_bytes);
+                              /* In */ uint8_t* salt);
+
+mtsd_res mtsd_random_bytes(uint8_t* out, size_t size);

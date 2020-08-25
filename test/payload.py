@@ -3,11 +3,12 @@ import argon2
 from Crypto.Cipher import AES
 from hexdump import hexdump
 
+# pip install argon2-cffi pycryptodome hexdump
 # python test/payload.py && hexdump -C data.mtsd.bin --skip 21
 
 PASSWORD = b'pass'
 
-RANDOM_BYTES = bytes([
+SALT = bytes([
   0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
   0xF, 0xE, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8,
   ])
@@ -33,7 +34,7 @@ compressed = lz_enc.compress(PAYLOAD_COMPRESSIBLE) + lz_enc.flush()
 
 derived_bytes = argon2.low_level.hash_secret_raw(
   secret=PASSWORD,
-  salt=RANDOM_BYTES,
+  salt=SALT,
   time_cost=1,
   memory_cost=1<<12,
   parallelism=1,

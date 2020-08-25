@@ -4,31 +4,12 @@
 #include <argon2.h>
 #include <randombytes.h>
 
-#ifdef DEBUG
-#include <string.h>
-
-static uint8_t DEBUG_RND_BYTES[] = {
-  0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
-  0xF, 0xE, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8,
-};
-#endif
-
-static mtsd_res derive_bytes(uint8_t* random_bytes, uint8_t* pwd, size_t pwd_size, uint8_t* out);
+static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8_t* out);
 
 mtsd_res mtsd_encrypt_payload(uint8_t* data, size_t data_size,
-                 uint8_t* pwd, size_t pwd_size, uint8_t* random_bytes) {
-#ifndef DEBUG
-  int err = randombytes(random_bytes, MTSD_RANDOM_BYTES);
-  if (err != 0) {
-    mtsd_error(MTSD_ERANDOMBYTES, err, NULL);
-    return MTSD_ERR;
-  }
-#else
-  memcpy(random_bytes, DEBUG_RND_BYTES, MTSD_RANDOM_BYTES);
-#endif
-
+                              uint8_t* pwd, size_t pwd_size, uint8_t* salt) {
   uint8_t derived_bytes[AES_KEYLEN + AES_BLOCKLEN];
-  MTSD_CHECK (derive_bytes(random_bytes, pwd, pwd_size, derived_bytes));
+  MTSD_CHECK (derive_bytes(salt, pwd, pwd_size, derived_bytes));
   uint8_t* key = derived_bytes;
   uint8_t* iv = derived_bytes + AES_KEYLEN;
 
@@ -39,9 +20,9 @@ mtsd_res mtsd_encrypt_payload(uint8_t* data, size_t data_size,
 }
 
 mtsd_res mtsd_decrypt_payload(uint8_t* data, size_t data_size,
-                 uint8_t* pwd, size_t pwd_size, uint8_t* random_bytes) {
+                              uint8_t* pwd, size_t pwd_size, uint8_t* salt) {
   uint8_t derived_bytes[AES_KEYLEN + AES_BLOCKLEN];
-  MTSD_CHECK (derive_bytes(random_bytes, pwd, pwd_size, derived_bytes));
+  MTSD_CHECK (derive_bytes(salt, pwd, pwd_size, derived_bytes));
   uint8_t* key = derived_bytes;
   uint8_t* iv = derived_bytes + AES_KEYLEN;
 
@@ -59,11 +40,11 @@ static void argon2_free (uint8_t *memory, size_t bytes_to_allocate) {
   mtsd_free(memory);
 }
 
-static mtsd_res derive_bytes(uint8_t* random_bytes, uint8_t* pwd, size_t pwd_size, uint8_t* out) {
+static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8_t* out) {
   struct Argon2_Context ctx = {
     .out = out, .outlen = (AES_KEYLEN + AES_BLOCKLEN),
     .pwd = pwd, .pwdlen = pwd_size,
-    .salt = random_bytes, .saltlen = MTSD_RANDOM_BYTES,
+    .salt = salt, .saltlen = MTSD_SALT_SIZE,
 
     .t_cost = 10,
     .m_cost = (1 << 15), // 32 MB
@@ -80,6 +61,15 @@ static mtsd_res derive_bytes(uint8_t* random_bytes, uint8_t* pwd, size_t pwd_siz
   int err = argon2id_ctx(&ctx);
   if (err != ARGON2_OK) {
     mtsd_error(MTSD_EARGON2, err, NULL);
+    return MTSD_ERR;
+  }
+  return MTSD_OK;
+}
+
+mtsd_res mtsd_random_bytes(uint8_t* out, size_t size) {
+  int err = randombytes(out, size);
+  if (err != 0) {
+    mtsd_error(MTSD_ERANDOMBYTES, err, NULL);
     return MTSD_ERR;
   }
   return MTSD_OK;
