@@ -1,7 +1,7 @@
-add_subdirectory("../libs/lzma" "${PROJECT_BINARY_DIR}/libs/lzma")
-add_subdirectory("../libs/randombytes" "${PROJECT_BINARY_DIR}/libs/randombytes")
-add_subdirectory("../libs/tiny-AES-c" "${PROJECT_BINARY_DIR}/libs/tiny-AES-c")
-add_subdirectory("../libs/argon2" "${PROJECT_BINARY_DIR}/libs/argon2")
+add_subdirectory("../third_party/lzma" "${PROJECT_BINARY_DIR}/third_party/lzma")
+add_subdirectory("../third_party/randombytes" "${PROJECT_BINARY_DIR}/third_party/randombytes")
+add_subdirectory("../third_party/tiny-AES-c" "${PROJECT_BINARY_DIR}/third_party/tiny-AES-c")
+add_subdirectory("../third_party/argon2" "${PROJECT_BINARY_DIR}/third_party/argon2")
 
 add_library(mtsd STATIC)
 

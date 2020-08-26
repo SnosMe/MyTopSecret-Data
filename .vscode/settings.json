@@ -1,6 +1,6 @@
 {
   "search.exclude": {
-    "libs": true
+    "third_party": true
   },
   "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
   "clangd.arguments": [
