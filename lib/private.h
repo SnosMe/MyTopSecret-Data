@@ -15,7 +15,7 @@
                                     return MTSD_ERR;\
                                   }
 
-#define MTSD_CHECK_GOTO(result, label)    if ((result) != MTSD_OK) {\
+#define MTSD_CHECK_GOTO(label, result)    if ((result) != MTSD_OK) {\
                                             goto label;\
                                           }
 
