@@ -1,16 +1,18 @@
-#include "parser.h"
 #include "../private.h"
+#include "parser.h"
+
 #include <string.h>
 
-#define CURRENT(state)    ((state)->reader.mb_char[0])
+#define CURRENT(state) ((state)->reader.mb_char[0])
 
-static mtsd_res lexer_add (mtsd_parser *state);
-static void lexer_clear(mtsd_parser *state);
-static mtsd_res lexer_read_key(mtsd_parser *state);
-static mtsd_res lexer_read_value(mtsd_parser *state);
-static void lexer_trim(mtsd_parser *state, size_t max_start, size_t max_end);
+static mtsd_res lexer_add(mtsd_parser* state);
+static void lexer_clear(mtsd_parser* state);
+static mtsd_res lexer_read_key(mtsd_parser* state);
+static mtsd_res lexer_read_value(mtsd_parser* state);
+static void lexer_trim(mtsd_parser* state, size_t max_start, size_t max_end);
 
-static mtsd_res lexer_add (mtsd_parser *state) {
+static mtsd_res lexer_add(mtsd_parser* state)
+{
   state->lexer.end += 1;
   size_t len = state->reader.mb_size;
   MTSD_REALLOC(state->lexer.buffer, state->lexer.buffer_size + len);
@@ -19,15 +21,16 @@ static mtsd_res lexer_add (mtsd_parser *state) {
   return MTSD_OK;
 }
 
-static void lexer_clear(mtsd_parser *state) {
+static void lexer_clear(mtsd_parser* state)
+{
   state->lexer.start = state->offset;
   state->lexer.end = state->offset;
   state->lexer.buffer_size = 0;
   MTSD_FREE(state->lexer.buffer);
 }
 
-
-static mtsd_res lexer_read_key(mtsd_parser *state) {
+static mtsd_res lexer_read_key(mtsd_parser* state)
+{
   for (;;) {
     if (CURRENT(state) == ':' || CURRENT(state) == '\n') {
       return MTSD_OK;
@@ -36,11 +39,13 @@ static mtsd_res lexer_read_key(mtsd_parser *state) {
     }
 
     MTSD_CHECK(mtsd_parser_input_next(state));
-    if (state->reader.eof) return MTSD_OK;
+    if (state->reader.eof)
+      return MTSD_OK;
   }
 }
 
-static mtsd_res lexer_read_value(mtsd_parser *state) {
+static mtsd_res lexer_read_value(mtsd_parser* state)
+{
   for (;;) {
     if (CURRENT(state) == '\n') {
       return MTSD_OK;
@@ -49,11 +54,13 @@ static mtsd_res lexer_read_value(mtsd_parser *state) {
     }
 
     MTSD_CHECK(mtsd_parser_input_next(state));
-    if (state->reader.eof) return MTSD_OK;
+    if (state->reader.eof)
+      return MTSD_OK;
   }
 }
 
-static void lexer_trim(mtsd_parser *state, size_t max_start, size_t max_end) {
+static void lexer_trim(mtsd_parser* state, size_t max_start, size_t max_end)
+{
   if (max_start > 0) {
     size_t dt = 0;
     for (size_t i = 0; i < state->lexer.buffer_size && i < max_start; i += 1) {
@@ -84,7 +91,8 @@ static void lexer_trim(mtsd_parser *state, size_t max_start, size_t max_end) {
   }
 }
 
-mtsd_res mtsd_parser_lexer_next(mtsd_parser *state) {
+mtsd_res mtsd_parser_lexer_next(mtsd_parser* state)
+{
   if (!state->lexer.consumed) {
     return MTSD_OK;
   } else {
@@ -93,7 +101,8 @@ mtsd_res mtsd_parser_lexer_next(mtsd_parser *state) {
 
   for (;;) {
     MTSD_CHECK(mtsd_parser_input_next(state));
-    if (state->reader.eof) break;
+    if (state->reader.eof)
+      break;
 
     lexer_clear(state);
     if (state->column == 1) {
@@ -130,7 +139,7 @@ mtsd_res mtsd_parser_lexer_next(mtsd_parser *state) {
       }
     } else {
       MTSD_CHECK(lexer_read_value(state));
-      
+
       lexer_trim(state, -1, -1);
 
       if (state->lexer.buffer_size > 0) {

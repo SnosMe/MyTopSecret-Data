@@ -7,9 +7,10 @@
 static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8_t* out);
 
 mtsd_res mtsd_encrypt_payload(uint8_t* data, size_t data_size,
-                              uint8_t* pwd, size_t pwd_size, uint8_t* salt) {
+                              uint8_t* pwd, size_t pwd_size, uint8_t* salt)
+{
   uint8_t derived_bytes[AES_KEYLEN + AES_BLOCKLEN];
-  MTSD_CHECK (derive_bytes(salt, pwd, pwd_size, derived_bytes));
+  MTSD_CHECK(derive_bytes(salt, pwd, pwd_size, derived_bytes));
   uint8_t* key = derived_bytes;
   uint8_t* iv = derived_bytes + AES_KEYLEN;
 
@@ -20,9 +21,10 @@ mtsd_res mtsd_encrypt_payload(uint8_t* data, size_t data_size,
 }
 
 mtsd_res mtsd_decrypt_payload(uint8_t* data, size_t data_size,
-                              uint8_t* pwd, size_t pwd_size, uint8_t* salt) {
+                              uint8_t* pwd, size_t pwd_size, uint8_t* salt)
+{
   uint8_t derived_bytes[AES_KEYLEN + AES_BLOCKLEN];
-  MTSD_CHECK (derive_bytes(salt, pwd, pwd_size, derived_bytes));
+  MTSD_CHECK(derive_bytes(salt, pwd, pwd_size, derived_bytes));
   uint8_t* key = derived_bytes;
   uint8_t* iv = derived_bytes + AES_KEYLEN;
 
@@ -32,15 +34,18 @@ mtsd_res mtsd_decrypt_payload(uint8_t* data, size_t data_size,
   return MTSD_OK;
 }
 
-static int argon2_alloc (uint8_t **memory, size_t bytes_to_allocate) {
+static int argon2_alloc(uint8_t** memory, size_t bytes_to_allocate)
+{
   *memory = mtsd_malloc(bytes_to_allocate);
   return 0;
 }
-static void argon2_free (uint8_t *memory, size_t bytes_to_allocate) {
+static void argon2_free(uint8_t* memory, size_t bytes_to_allocate)
+{
   mtsd_free(memory);
 }
 
-static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8_t* out) {
+static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8_t* out)
+{
   struct Argon2_Context ctx = {
     .out = out, .outlen = (AES_KEYLEN + AES_BLOCKLEN),
     .pwd = pwd, .pwdlen = pwd_size,
@@ -66,7 +71,8 @@ static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8
   return MTSD_OK;
 }
 
-mtsd_res mtsd_random_bytes(uint8_t* out, size_t size) {
+mtsd_res mtsd_random_bytes(uint8_t* out, size_t size)
+{
   int err = randombytes(out, size);
   if (err != 0) {
     mtsd_error(MTSD_ERANDOMBYTES, err, NULL);

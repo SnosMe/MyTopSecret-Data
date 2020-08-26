@@ -1,20 +1,24 @@
 #include "parser.h"
+
 #include "../private.h"
+
 #include <string.h>
 
-#define TOKEN(state)    ((state)->lexer)
+#define TOKEN(state) ((state)->lexer)
 
 static mtsd_res parser_unexpected();
-static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field);
-static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record);
-static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc);
+static mtsd_res parse_field(mtsd_parser* state, mtsd_field* field);
+static mtsd_res parse_record(mtsd_parser* state, mtsd_record* record);
+static mtsd_res parse_doc(mtsd_parser* state, mtsd_document* doc);
 
-static mtsd_res parser_unexpected() {
+static mtsd_res parser_unexpected()
+{
   // TODO err_msg
   return MTSD_ERR;
 }
 
-static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
+static mtsd_res parse_field(mtsd_parser* state, mtsd_field* field)
+{
   if (TOKEN(state).kind != MTSD_KEY_TOKEN) {
     return parser_unexpected();
   } else {
@@ -52,8 +56,9 @@ static mtsd_res parse_field(mtsd_parser *state, mtsd_field *field) {
   }
 }
 
-static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record) {
-  mtsd_field *current = record->fields;
+static mtsd_res parse_record(mtsd_parser* state, mtsd_record* record)
+{
+  mtsd_field* current = record->fields;
   if (!current) {
     MTSD_MALLOC(current, sizeof(mtsd_field));
     record->fields = current;
@@ -70,15 +75,17 @@ static mtsd_res parse_record(mtsd_parser *state, mtsd_record *record) {
   return MTSD_OK;
 }
 
-static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc) {
-  mtsd_record *current = NULL;
+static mtsd_res parse_doc(mtsd_parser* state, mtsd_document* doc)
+{
+  mtsd_record* current = NULL;
   MTSD_MALLOC(current, sizeof(mtsd_field));
   doc->records = current;
   mtsd_doc_record_init(current);
 
   for (;;) {
     MTSD_CHECK(mtsd_parser_lexer_next(state));
-    if (TOKEN(state).kind == MTSD_STREAM_END_TOKEN) return MTSD_OK;
+    if (TOKEN(state).kind == MTSD_STREAM_END_TOKEN)
+      return MTSD_OK;
 
     if (TOKEN(state).kind == MTSD_RECORD_SEPARATOR_TOKEN) {
       MTSD_MALLOC(current->next, sizeof(mtsd_field));
@@ -91,7 +98,8 @@ static mtsd_res parse_doc(mtsd_parser *state, mtsd_document *doc) {
   }
 }
 
-mtsd_res mtsd_parse(mtsd_read_callback read_callback, void *callback_data, mtsd_document *doc) {
+mtsd_res mtsd_parse(mtsd_read_callback read_callback, void* callback_data, mtsd_document* doc)
+{
   mtsd_parser state = {
     .line = 1,
     .column = 0,

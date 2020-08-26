@@ -2,6 +2,7 @@
 #define MTSD_LANG_PARSER_H
 
 #include "mtsdata.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -21,7 +22,7 @@ typedef struct {
 
   struct {
     mtsd_read_callback callback;
-    void *data;
+    void* data;
   } input;
 
   struct {
@@ -40,8 +41,8 @@ typedef struct {
   } lexer;
 } mtsd_parser;
 
-mtsd_res mtsd_parser_input_next(mtsd_parser *state);
-mtsd_res mtsd_parser_lexer_next(mtsd_parser *state);
-void mtsd_parser_print_token(mtsd_parser *state);
+mtsd_res mtsd_parser_input_next(mtsd_parser* state);
+mtsd_res mtsd_parser_lexer_next(mtsd_parser* state);
+void mtsd_parser_print_token(mtsd_parser* state);
 
 #endif

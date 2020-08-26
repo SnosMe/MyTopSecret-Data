@@ -1,17 +1,20 @@
 #include "private.h"
 
-#include <LzmaEnc.h>
 #include <LzmaDec.h>
+#include <LzmaEnc.h>
 
-static void* SzAlloc(ISzAllocPtr p, size_t size) {
+static void* SzAlloc(ISzAllocPtr p, size_t size)
+{
   return mtsd_malloc(size);
 }
-static void SzFree(ISzAllocPtr p, void* address) {
+static void SzFree(ISzAllocPtr p, void* address)
+{
   mtsd_free(address);
 }
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
-mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size, uint8_t* is_compressed) {
+mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size, uint8_t* is_compressed)
+{
   size_t data_size = *size;
   CLzmaEncProps props;
   LzmaEncProps_Init(&props);
@@ -43,7 +46,8 @@ mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size, uint8_t* is_compress
   return MTSD_OK;
 }
 
-mtsd_res mtsd_decompress_payload(uint8_t* compressed, size_t compressed_size, uint8_t* data, size_t* size) {
+mtsd_res mtsd_decompress_payload(uint8_t* compressed, size_t compressed_size, uint8_t* data, size_t* size)
+{
   CLzmaEncProps props;
   props.lc = MTSD_LZMA_LC;
   props.lp = MTSD_LZMA_LP;
@@ -56,7 +60,7 @@ mtsd_res mtsd_decompress_payload(uint8_t* compressed, size_t compressed_size, ui
 
   ELzmaStatus status;
   SRes res = LzmaDecode(data, size, compressed, &compressed_size,
-    props_encoded, LZMA_PROPS_SIZE, LZMA_FINISH_ANY, &status, &g_Alloc);
+                        props_encoded, LZMA_PROPS_SIZE, LZMA_FINISH_ANY, &status, &g_Alloc);
 
   if (res != SZ_OK && status != LZMA_STATUS_NEEDS_MORE_INPUT) {
     mtsd_error(MTSD_ELZMA, res, NULL);

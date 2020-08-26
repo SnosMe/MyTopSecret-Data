@@ -259,7 +259,8 @@ static char* MTSD_KEYS[] = {
   /* 255 */ "__RESERVED"
 };
 
-size_t mtsd_doc_records_count(const mtsd_document* doc) {
+size_t mtsd_doc_records_count(const mtsd_document* doc)
+{
   size_t records_num = 0;
   mtsd_record* record = doc->records;
   while (record) {
@@ -269,7 +270,8 @@ size_t mtsd_doc_records_count(const mtsd_document* doc) {
   return records_num;
 }
 
-size_t mtsd_doc_record_fields_count(const mtsd_record* record) {
+size_t mtsd_doc_record_fields_count(const mtsd_record* record)
+{
   size_t fields_num = 0;
   mtsd_field* field = record->fields;
   while (field) {
@@ -279,7 +281,8 @@ size_t mtsd_doc_record_fields_count(const mtsd_record* record) {
   return fields_num;
 }
 
-int mtsd_doc_field_is_multiline_value(const mtsd_field* field) {
+int mtsd_doc_field_is_multiline_value(const mtsd_field* field)
+{
   for (size_t i = 0; i < field->value_size; i += 1) {
     if (field->value[i] == '\n') {
       return 1;
@@ -288,23 +291,27 @@ int mtsd_doc_field_is_multiline_value(const mtsd_field* field) {
   return 0;
 }
 
-void mtsd_doc_init(mtsd_document* doc) {
+void mtsd_doc_init(mtsd_document* doc)
+{
   doc->records = NULL;
 }
 
-void mtsd_doc_record_init(mtsd_record* record) {
+void mtsd_doc_record_init(mtsd_record* record)
+{
   record->fields = NULL;
   record->next = NULL;
 }
 
-void mtsd_doc_field_init(mtsd_field* field) {
+void mtsd_doc_field_init(mtsd_field* field)
+{
   field->key = 0;
   field->value_size = 0;
   field->value = NULL;
   field->next = NULL;
 }
 
-void mtsd_doc_free(mtsd_document* doc) {
+void mtsd_doc_free(mtsd_document* doc)
+{
   mtsd_record* record = doc->records;
   while (record) {
     mtsd_field* field = record->fields;
@@ -326,8 +333,10 @@ void mtsd_doc_free(mtsd_document* doc) {
   mtsd_doc_init(doc);
 }
 
-uint8_t mtsd_doc_get_key_id(const uint8_t* str, size_t str_size) {
-  if (!str) return 0;
+uint8_t mtsd_doc_get_key_id(const uint8_t* str, size_t str_size)
+{
+  if (!str)
+    return 0;
 
   for (uint8_t keyid = 1; keyid < 0xFF; keyid += 1) {
     char* key = MTSD_KEYS[keyid];
@@ -340,24 +349,24 @@ uint8_t mtsd_doc_get_key_id(const uint8_t* str, size_t str_size) {
         }
       }
 
-      if (
-        i >= str_size ||
-        key[i] != str[i]
-      ) break;
+      if (i >= str_size || key[i] != str[i])
+        break;
     }
   }
 
   return 0;
 }
 
-int mtsd_doc_is_valid_keyid(uint8_t keyid) {
+int mtsd_doc_is_valid_keyid(uint8_t keyid)
+{
   if (keyid == 0 || keyid == 0xFF || MTSD_KEYS[keyid][0] == '\0') {
     return 0;
   }
   return 1;
 }
 
-char* mtsd_doc_keyid_to_string(uint8_t keyid) {
+char* mtsd_doc_keyid_to_string(uint8_t keyid)
+{
   if (!mtsd_doc_is_valid_keyid(keyid)) {
     return "__NULL";
   }

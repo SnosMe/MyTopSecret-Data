@@ -1,14 +1,15 @@
-#include "parser.h"
 #include "../private.h"
+#include "parser.h"
 
-#define UTF8_LEN(bytes)    (((bytes)[0] & 0x80) == 0x00 ? 1 : \
-                            ((bytes)[0] & 0xE0) == 0xC0 ? 2 : \
-                            ((bytes)[0] & 0xF0) == 0xE0 ? 3 : \
+#define UTF8_LEN(bytes)    (((bytes)[0] & 0x80) == 0x00 ? 1 :                                                          \
+                            ((bytes)[0] & 0xE0) == 0xC0 ? 2 :                                                          \
+                            ((bytes)[0] & 0xF0) == 0xE0 ? 3 :                                                          \
                             ((bytes)[0] & 0xF8) == 0xF0 ? 4 : 0)
 
-static mtsd_res input_read_utf8(mtsd_parser *state) {
+static mtsd_res input_read_utf8(mtsd_parser* state)
+{
   size_t read;
-  uint8_t *buff = state->reader.mb_char;
+  uint8_t* buff = state->reader.mb_char;
   if (!state->input.callback(state->input.data, buff, 1, &read)) {
     mtsd_error(MTSD_ESELF, MTSD_EREADER, NULL);
     return MTSD_ERR;
@@ -42,8 +43,7 @@ static mtsd_res input_read_utf8(mtsd_parser *state) {
                      (octet & 0xF0) == 0xE0 ? octet & 0x0F :
                      (octet & 0xF8) == 0xF0 ? octet & 0x07 : 0;
 
-    for (size_t k = 1; k < width; k ++)
-    {
+    for (size_t k = 1; k < width; k++) {
       octet = buff[k];
       if ((octet & 0xC0) != 0x80) {
         mtsd_error(MTSD_ESELF, MTSD_EREADER, "invalid trailing UTF-8 octet");
@@ -72,7 +72,8 @@ static mtsd_res input_read_utf8(mtsd_parser *state) {
   return MTSD_OK;
 }
 
-mtsd_res mtsd_parser_input_next(mtsd_parser *state) {
+mtsd_res mtsd_parser_input_next(mtsd_parser* state)
+{
   MTSD_CHECK(input_read_utf8(state));
   state->offset += 1;
   if (state->reader.mb_char[0] == '\n') {

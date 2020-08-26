@@ -2,5 +2,8 @@
   "search.exclude": {
     "libs": true
   },
-  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
+  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+  "clangd.arguments": [
+    "--clang-tidy"
+  ]
 }

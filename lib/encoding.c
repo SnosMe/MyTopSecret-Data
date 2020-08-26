@@ -1,15 +1,17 @@
+#include "lang/parser.h"
 #include "mtsdata.h"
 #include "private.h"
-#include "lang/parser.h"
+
 #include <string.h>
 
-#define RECORD_SIZE 1
-#define KEY_SIZE 1
+#define RECORD_SIZE         1
+#define KEY_SIZE            1
 #define STR_TERMINATOR_SIZE 1
-#define STR_TERMINATOR '\0'
+#define STR_TERMINATOR      '\0'
 
-mtsd_res mtsd_encode__(mtsd_document* doc, uint8_t** out, size_t* size) {
-  #define buf (*out)
+mtsd_res mtsd_encode__(mtsd_document* doc, uint8_t** out, size_t* size)
+{
+#define buf (*out)
   size_t written = 0;
   buf = NULL;
 
@@ -41,24 +43,26 @@ mtsd_res mtsd_encode__(mtsd_document* doc, uint8_t** out, size_t* size) {
 
     record = record->next;
   }
-  #undef buf
+#undef buf
 
   *size = written;
   return MTSD_OK;
 }
 
-mtsd_res mtsd_encode(mtsd_document* doc, uint8_t** out, size_t* size) {
+mtsd_res mtsd_encode(mtsd_document* doc, uint8_t** out, size_t* size)
+{
   *out = NULL;
   if (!mtsd_encode__(doc, out, size)) {
     MTSD_FREE(*out);
     return MTSD_ERR;
   }
-  return MTSD_OK;  
+  return MTSD_OK;
 }
 
-static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* doc) {
+static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* doc)
+{
   for (size_t i = 0; i < size;) {
-    mtsd_record *record = doc->records;
+    mtsd_record* record = doc->records;
     if (!record) {
       MTSD_MALLOC(record, sizeof(mtsd_record));
       doc->records = record;
@@ -80,7 +84,7 @@ static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* 
         return MTSD_ERR;
       }
 
-      mtsd_field *field = record->fields;
+      mtsd_field* field = record->fields;
       if (!field) {
         MTSD_MALLOC(field, sizeof(mtsd_field));
         record->fields = field;
@@ -121,17 +125,19 @@ static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* 
   return MTSD_OK;
 }
 
-mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc) {
+mtsd_res mtsd_decode(uint8_t* data, size_t size, mtsd_document* doc)
+{
   mtsd_doc_init(doc);
   if (!mtsd_decode__(data, size, doc)) {
-    mtsd_doc_free(doc);    
+    mtsd_doc_free(doc);
     return MTSD_ERR;
   }
   return MTSD_OK;
 }
 
-static inline mtsd_res mtsd_to_text__(mtsd_document* doc, uint8_t** out, size_t* size) {
-  #define buf (*out)
+static inline mtsd_res mtsd_to_text__(mtsd_document* doc, uint8_t** out, size_t* size)
+{
+#define buf (*out)
   size_t written = 0;
   buf = NULL;
 
@@ -202,17 +208,18 @@ static inline mtsd_res mtsd_to_text__(mtsd_document* doc, uint8_t** out, size_t*
 
     record = record->next;
   }
-  #undef buf
+#undef buf
 
   *size = written;
   return MTSD_OK;
 }
 
-mtsd_res mtsd_to_text(mtsd_document* doc, uint8_t** out, size_t* size) {
+mtsd_res mtsd_to_text(mtsd_document* doc, uint8_t** out, size_t* size)
+{
   *out = NULL;
   if (!mtsd_to_text__(doc, out, size)) {
     MTSD_FREE(*out);
     return MTSD_ERR;
   }
-  return MTSD_OK;  
+  return MTSD_OK;
 }

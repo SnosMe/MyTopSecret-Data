@@ -1,5 +1,6 @@
 #include "mtsdata.h"
 #include "private.h"
+
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
@@ -15,14 +16,13 @@ typedef struct {
 #pragma pack(pop)
 
 static uint16_t crc16(uint8_t* data, size_t size);
-static mtsd_res get_date_now (uint32_t* out);
-static void derive_salt(const uint8_t* data, size_t data_size, const uint8_t* pass, size_t pass_len, uint8_t* salt);
+static mtsd_res get_date_now(uint32_t* out);
+static void derive_salt(const uint8_t* data, size_t data_size,
+                        const uint8_t* pass, size_t pass_len, uint8_t* salt);
 
-mtsd_res mtsd_encrypt(mtsd_document* doc,
-                      uint8_t* password,
-                      size_t password_len,
-                      uint8_t** encrypted,
-                      size_t* size) {
+mtsd_res mtsd_encrypt(mtsd_document* doc, uint8_t* password, size_t password_len,
+                      uint8_t** encrypted, size_t* size)
+{
   uint8_t* out = NULL;
   uint8_t* encoded = NULL;
 
@@ -69,11 +69,9 @@ error:
   return MTSD_ERR;
 }
 
-mtsd_res mtsd_decrypt(uint8_t* encrypted,
-                      size_t size,
-                      uint8_t* password,
-                      size_t password_len,
-                      mtsd_document *doc) {
+mtsd_res mtsd_decrypt(uint8_t* encrypted, size_t size,
+                      uint8_t* password, size_t password_len, mtsd_document* doc)
+{
   uint8_t* cloned = NULL;
   uint8_t* encoded = NULL;
 
@@ -121,23 +119,22 @@ error:
   XorOut: 0x0000
   Check : 0x29B1
 */
-static uint16_t crc16 (uint8_t* data, size_t size) {
+static uint16_t crc16(uint8_t* data, size_t size)
+{
   uint16_t crc = 0xFFFF;
 
-  while(size--)
-  {
+  while (size--) {
     crc ^= *(data++) << 8;
 
     for (unsigned i = 0; i < 8; i += 1)
-      crc = (crc & 0x8000)
-        ? (crc << 1) ^ 0x1021
-        : crc << 1;
+      crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
   }
 
   return crc;
 }
 
-static mtsd_res get_date_now (uint32_t* out) {
+static mtsd_res get_date_now(uint32_t* out)
+{
   time_t t = time(NULL);
   if (t == (time_t)-1) {
     mtsd_error(MTSD_ESELF, MTSD_ETIME, "cannot get system time");
@@ -147,27 +144,30 @@ static mtsd_res get_date_now (uint32_t* out) {
   return MTSD_OK;
 }
 
-static void derive_salt(const uint8_t* data, size_t data_size, const uint8_t* pass, size_t pass_len, uint8_t* salt) {
+static void derive_salt(const uint8_t* data, size_t data_size,
+                        const uint8_t* pass, size_t pass_len, uint8_t* salt)
+{
 #ifndef DEBUG
   mtsd_header* header = (mtsd_header*)data;
-  salt[0] = (data_size >> (8*0)) & 0xFF;
-  salt[1] = (data_size >> (8*1)) & 0xFF;
-  salt[2] = (header->date >> (8*0)) & 0xFF;
-  salt[3] = (header->date >> (8*1)) & 0xFF;
-  salt[4] = (header->date >> (8*2)) & 0xFF;
-  salt[5] = (header->date >> (8*3)) & 0xFF;
+  salt[0] = (data_size >> (8 * 0)) & 0xFF;
+  salt[1] = (data_size >> (8 * 1)) & 0xFF;
+  salt[2] = (header->date >> (8 * 0)) & 0xFF;
+  salt[3] = (header->date >> (8 * 1)) & 0xFF;
+  salt[4] = (header->date >> (8 * 2)) & 0xFF;
+  salt[5] = (header->date >> (8 * 3)) & 0xFF;
   salt[6] = header->random_bytes[0];
   salt[7] = header->random_bytes[1];
   salt[8] = header->random_bytes[2];
   salt[9] = header->random_bytes[3];
-  salt[10] = (pass_len >> (8*0)) & 0xFF;
+  salt[10] = (pass_len >> (8 * 0)) & 0xFF;
   salt[11] = 0x42;
   salt[12] = 0xf0;
   salt[13] = 0xe1;
   salt[14] = 0xeb;
   salt[15] = 0xa9;
 
-  for (size_t pi = 0, si = 11; pi < pass_len && si < MTSD_SALT_SIZE; pi += 1, si += 1) {
+  for (size_t pi = 0, si = 11; pi < pass_len && si < MTSD_SALT_SIZE;
+       pi += 1, si += 1) {
     salt[si] ^= pass[pi];
   }
 #else
