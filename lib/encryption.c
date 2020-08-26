@@ -46,10 +46,10 @@ static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8
     .pwd = pwd, .pwdlen = pwd_size,
     .salt = salt, .saltlen = MTSD_SALT_SIZE,
 
-    .t_cost = 10,
-    .m_cost = (1 << 15), // 32 MB
-    .lanes = 1,
-    .threads = 1,
+    .t_cost = MTSD_ARGON2_ITER,
+    .m_cost = MTSD_ARGON2_MEM,
+    .lanes = MTSD_ARGON2_THREADS,
+    .threads = MTSD_ARGON2_THREADS,
 
     .secret = NULL, .secretlen = 0,
     .ad = NULL, .adlen = 0,
@@ -58,7 +58,7 @@ static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8
     .flags = ARGON2_DEFAULT_FLAGS
   };
 
-  int err = argon2id_ctx(&ctx);
+  int err = argon2d_ctx(&ctx);
   if (err != ARGON2_OK) {
     mtsd_error(MTSD_EARGON2, err, NULL);
     return MTSD_ERR;

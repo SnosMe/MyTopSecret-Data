@@ -15,9 +15,9 @@ mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size, uint8_t* is_compress
   size_t data_size = *size;
   CLzmaEncProps props;
   LzmaEncProps_Init(&props);
-  props.lc = 0;
-  props.lp = 0;
-  props.pb = 0;
+  props.lc = MTSD_LZMA_LC;
+  props.lp = MTSD_LZMA_LP;
+  props.pb = MTSD_LZMA_PB;
 
   props.level = 9;
   props.dictSize = data_size;
@@ -45,9 +45,9 @@ mtsd_res mtsd_compress_payload(uint8_t* data, size_t* size, uint8_t* is_compress
 
 mtsd_res mtsd_decompress_payload(uint8_t* compressed, size_t compressed_size, uint8_t* data, size_t* size) {
   CLzmaEncProps props;
-  props.lc = 0;
-  props.lp = 0;
-  props.pb = 0;
+  props.lc = MTSD_LZMA_LC;
+  props.lp = MTSD_LZMA_LP;
+  props.pb = MTSD_LZMA_PB;
   props.dictSize = *size;
 
   uint8_t props_encoded[LZMA_PROPS_SIZE];

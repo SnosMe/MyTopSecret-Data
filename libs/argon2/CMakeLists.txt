@@ -8,6 +8,6 @@ target_sources(argon2 PRIVATE
   "src/encoding.c"
   "src/opt.c")
 
-target_compile_definitions(argon2 PRIVATE "ARGON2_NO_THREADS")
+# target_compile_definitions(argon2 PRIVATE "ARGON2_NO_THREADS")
 
 target_include_directories(argon2 PUBLIC "include")
