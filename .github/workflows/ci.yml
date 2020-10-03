@@ -15,4 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: choco install ninja
-    - run: ninja --version
+    - run: cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Release
+    - run: cmake --build build
+    - run: ls build
