@@ -15,6 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: cmake --help
-    - run: cmake -B build -D CMAKE_BUILD_TYPE=Release
-    - run: cmake --build build
-    - run: ls build
+    - run: cmake -B build
+    - run: cmake --build build --config Release
+    - run: ls build/cli
