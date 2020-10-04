@@ -17,4 +17,7 @@ jobs:
     - run: cmake --help
     - run: cmake -B build
     - run: cmake --build build --config Release
-    - run: ls build/cli
+    - uses: actions/upload-artifact@v2.2.0
+      with:
+        name: mtsd.exe
+        path: build/cli/Release/mtsd-cli.exe
