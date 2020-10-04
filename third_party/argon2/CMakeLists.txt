@@ -8,6 +8,9 @@ target_sources(argon2 PRIVATE
   "src/encoding.c"
   "src/opt.c")
 
-# target_compile_definitions(argon2 PRIVATE "ARGON2_NO_THREADS")
+if(EMSCRIPTEN)
+  target_compile_options(argon2 PRIVATE "-msimd128" "-msse2") # TODO: SSSE3
+  target_compile_definitions(argon2 PRIVATE "ARGON2_NO_THREADS")
+endif()
 
 target_include_directories(argon2 PUBLIC "include")
