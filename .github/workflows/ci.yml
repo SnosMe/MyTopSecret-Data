@@ -14,10 +14,9 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - run: cmake --help
     - run: cmake -B build
     - run: cmake --build build --config Release
     - uses: actions/upload-artifact@v2.2.0
       with:
-        name: mtsd.exe
+        name: mtsd-cli-win64
         path: build/cli/Release/mtsd-cli.exe
