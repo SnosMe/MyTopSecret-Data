@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+    paths-ignore:
+      - README.md
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: cmake -B build
+    - run: cmake --build build --config Release
+    - uses: actions/upload-artifact@v2.2.0
+      with:
+        name: mtsd-cli-win64
+        path: build/cli/Release/mtsd-cli.exe
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: mymindstorm/setup-emsdk@v6
+    - run: emcmake cmake -B build
+    - run: cmake --build build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: web-app-bindings
+        path: build/web-app/mtsd-native.js

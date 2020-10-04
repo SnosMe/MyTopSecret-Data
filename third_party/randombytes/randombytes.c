@@ -251,17 +251,26 @@ static int randombytes_bsd_randombytes(void *buf, size_t n)
 #if defined(__EMSCRIPTEN__)
 static int randombytes_js_randombytes_nodejs(void *buf, size_t n) {
 	const int ret = EM_ASM_INT({
-		var crypto;
-		try {
-			crypto = require('crypto');
-		} catch (error) {
-			return -2;
-		}
-		try {
-			writeArrayToMemory(crypto.randomBytes($1), $0);
+		if (crypto) {
+			// browser
+			var arr = new Uint8Array($1);
+			crypto.getRandomValues(arr);
+			writeArrayToMemory(arr, $0);
 			return 0;
-		} catch (error) {
-			return -1;
+		} else {
+			// nodejs
+			var crypto_
+			try {
+				crypto_ = require('crypto');
+			} catch (error) {
+				return -2;
+			}
+			try {
+				writeArrayToMemory(crypto_.randomBytes($1), $0);
+				return 0;
+			} catch (error) {
+				return -1;
+			}
 		}
 	}, buf, n);
 	switch (ret) {
