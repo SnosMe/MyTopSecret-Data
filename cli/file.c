@@ -19,7 +19,7 @@ void read_from_file(const char* filename, uint8_t** content, size_t* size) {
   *size = file_stat.st_size;
   *content = malloc(*size);
   if (*content == NULL) {
-    printf("Cannot allocate memmory to read file.\n");
+    printf("Cannot allocate memory to read file.\n");
     exit(1);
   }
 
