@@ -177,3 +177,19 @@ static void derive_salt(const uint8_t* data, size_t data_size,
   salt[12] = 0xB; salt[13] = 0xA; salt[14] = 0x9; salt[15] = 0x8;
 #endif
 }
+
+int mtsd_container_is_valid(uint8_t* data, size_t size)
+{
+  if (size < sizeof(mtsd_header)) {
+    return 0;
+  }
+
+  if (((mtsd_header*)data)->magic_number != 0x7D) {
+    return 0;
+  }
+
+  uint16_t crc = ((mtsd_header*)data)->crc16;
+  uint16_t actual = crc16(data + 3, size - 3);
+
+  return (crc == actual);
+}

@@ -82,5 +82,6 @@ void mtsd_doc_free(mtsd_document* doc);
 uint8_t mtsd_doc_get_key_id(const uint8_t* str, size_t str_size);
 char* mtsd_doc_keyid_to_string(uint8_t keyid);
 int mtsd_doc_is_valid_keyid(uint8_t keyid);
+int mtsd_container_is_valid(uint8_t* data, size_t size);
 
 #endif
