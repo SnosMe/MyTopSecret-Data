@@ -115,7 +115,7 @@ static inline mtsd_res mtsd_decode__(uint8_t* data, size_t size, mtsd_document* 
           field->value_size += 1;
         }
       }
-      if (data[i] != STR_TERMINATOR) {
+      if (i >= size) {
         mtsd_error(MTSD_ESELF, MTSD_EDECODE_CORRUPTED_PAYLOAD, NULL);
         return MTSD_ERR;
       }
