@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mtsdata.h>
+#include <dmtx.h>
 
 void mtsd_error(mtsd_error_source src, int error, char* msg) {
   // TODO

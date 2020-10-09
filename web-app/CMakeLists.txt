@@ -1,7 +1,10 @@
+add_subdirectory("../third_party/libdmtx" "${PROJECT_BINARY_DIR}/third_party/libdmtx")
 
 add_executable(mtsd-native src/bindings.c)
 
-target_link_libraries(mtsd-native PUBLIC mtsd)
+target_link_libraries(mtsd-native PUBLIC
+  mtsd
+  dmtx)
 
 target_include_directories(mtsd-native PUBLIC "${PROJECT_BINARY_DIR}")
 
