@@ -89,3 +89,66 @@ int encode(mtsd_document* doc, uint8_t** out)
 
   return 1;
 }
+
+#pragma pack(push, 1)
+typedef struct {
+  double pos_matrix[3][3];
+  size_t data_size;
+  uint8_t data[];
+} b_dmtx_decoded_region;
+
+typedef struct {
+  size_t found;
+  b_dmtx_decoded_region dmtx[];
+} b_dmtx_decoded;
+#pragma pack(pop)
+
+uint8_t* b_dmtx_find_regions(uint8_t* img_data, size_t img_w, size_t img_h) {
+  size_t out_size = sizeof(b_dmtx_decoded);
+  uint8_t* out = malloc(out_size);
+  ((b_dmtx_decoded*)out)->found = 0;
+
+  DmtxImage* img = dmtxImageCreate(img_data, img_w, img_h, DmtxPack32bppRGBX);
+  dmtxImageSetProp(img, DmtxPropImageFlip, DmtxFlipNone);
+
+  DmtxDecode* decode = dmtxDecodeCreate(img, 1);
+  dmtxDecodeSetProp(decode, DmtxPropScanGap, 2);
+  dmtxDecodeSetProp(decode, DmtxPropEdgeThresh, 5);
+
+  DmtxTime timeout = dmtxTimeAdd(dmtxTimeNow(), 1000/24);
+
+  DmtxRegion* region;
+  while ((region = dmtxRegionFindNext(decode, &timeout))) {
+    ++((b_dmtx_decoded*)out)->found;
+
+    DmtxMessage* msg = dmtxDecodeMatrixRegion(decode, region, DmtxUndefined);
+
+    size_t alloc_size = out_size +
+      sizeof(b_dmtx_decoded_region) + (msg != NULL ? msg->outputIdx : 0);
+    out = realloc(out, alloc_size);
+    b_dmtx_decoded_region* decoded_matrix = (b_dmtx_decoded_region*)(out + out_size);
+    out_size = alloc_size;
+
+    memcpy(decoded_matrix->pos_matrix, region->fit2raw, sizeof(region->fit2raw));
+
+    if (msg) {
+      decoded_matrix->data_size = msg->outputIdx;
+      memcpy(decoded_matrix->data, msg->output, msg->outputIdx);
+      dmtxMessageDestroy(&msg);
+    } else {
+      decoded_matrix->data_size = 0;
+    }
+
+    dmtxRegionDestroy(&region);
+  }
+
+  dmtxDecodeDestroy(&decode);
+  dmtxImageDestroy(&img);
+
+  if (((b_dmtx_decoded*)out)->found) {
+    return out;
+  } else {
+    free(out);
+    return NULL;
+  }
+}
