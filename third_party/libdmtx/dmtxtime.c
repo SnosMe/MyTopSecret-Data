@@ -72,6 +72,28 @@ dmtxTimeNow(void)
    return tNow;
 }
 
+#elif defined(__EMSCRIPTEN__)
+
+#include <emscripten.h>
+#define DMTX_TIME_PREC_USEC 1000
+
+/**
+ * \brief  Emscripten version
+ * \return Time now
+ */
+extern DmtxTime
+dmtxTimeNow(void)
+{
+   int64_t emNow = (int64_t)emscripten_get_now();
+
+   DmtxTime tNow;
+
+   tNow.sec = (emNow / 1000L);
+   tNow.usec = (emNow % 1000L) * 1000L;
+
+   return tNow;
+}
+
 #else
 
 #include <time.h>
