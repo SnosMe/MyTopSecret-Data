@@ -17,17 +17,17 @@ void mtsd_free(void* ptr) {
   free(ptr);
 }
 
-int encode(mtsd_document* doc, uint8_t** out);
+int b_mtsd_serialize_doc(mtsd_document* doc, uint8_t** out);
 
-uint8_t* decrypt(uint8_t* encrypted_data, size_t encrypted_size,
-                 uint8_t* password, size_t pass_len) {
+uint8_t* b_mtsd_decrypt(uint8_t* encrypted_data, size_t encrypted_size, uint8_t* password, size_t pass_len)
+{
   mtsd_document doc;
   if (!mtsd_decrypt(encrypted_data, encrypted_size, password, pass_len, &doc)) {
     return NULL;
   }
 
   uint8_t* bin = NULL;
-  if (!encode(&doc, &bin)) {
+  if (!b_mtsd_serialize_doc(&doc, &bin)) {
     mtsd_doc_free(&doc);
     return NULL;
   }
@@ -36,7 +36,7 @@ uint8_t* decrypt(uint8_t* encrypted_data, size_t encrypted_size,
   return bin;
 }
 
-int encode(mtsd_document* doc, uint8_t** out)
+int b_mtsd_serialize_doc(mtsd_document* doc, uint8_t** out)
 {
   size_t size = 0;
   mtsd_record* record = doc->records;
@@ -103,7 +103,7 @@ typedef struct {
 } b_dmtx_decoded;
 #pragma pack(pop)
 
-uint8_t* b_dmtx_find_regions(uint8_t* img_data, size_t img_w, size_t img_h) {
+uint8_t* b_dmtx_find_regions(uint8_t* img_data, size_t img_w, size_t img_h, int32_t budget) {
   size_t out_size = sizeof(b_dmtx_decoded);
   uint8_t* out = malloc(out_size);
   ((b_dmtx_decoded*)out)->found = 0;
@@ -115,7 +115,7 @@ uint8_t* b_dmtx_find_regions(uint8_t* img_data, size_t img_w, size_t img_h) {
   dmtxDecodeSetProp(decode, DmtxPropScanGap, 2);
   dmtxDecodeSetProp(decode, DmtxPropEdgeThresh, 5);
 
-  DmtxTime timeout = dmtxTimeAdd(dmtxTimeNow(), 1000/24);
+  DmtxTime timeout = dmtxTimeAdd(dmtxTimeNow(), budget);
 
   DmtxRegion* region;
   while ((region = dmtxRegionFindNext(decode, &timeout))) {
@@ -151,4 +151,31 @@ uint8_t* b_dmtx_find_regions(uint8_t* img_data, size_t img_w, size_t img_h) {
     free(out);
     return NULL;
   }
+}
+
+uint8_t* b_dmtx_create(uint8_t* data, size_t data_size,
+                       int module_size, int margin_size,
+                       int* width_out, int* height_out) {
+  DmtxEncode* encode = dmtxEncodeCreate();
+  dmtxEncodeSetProp(encode, DmtxPropScheme, DmtxSchemeBase256);
+  dmtxEncodeSetProp(encode, DmtxPropPixelPacking, DmtxPack32bppRGBX);
+  dmtxEncodeSetProp(encode, DmtxPropImageFlip, DmtxFlipNone);
+  dmtxEncodeSetProp(encode, DmtxPropModuleSize, module_size);
+  dmtxEncodeSetProp(encode, DmtxPropMarginSize, margin_size);
+
+  if (dmtxEncodeDataMatrix(encode, data_size, data) != DmtxPass) {
+    dmtxEncodeDestroy(&encode);
+    return NULL;
+  }
+
+  int width = dmtxImageGetProp(encode->image, DmtxPropWidth);
+  int height = dmtxImageGetProp(encode->image, DmtxPropHeight);
+
+  *width_out = width;
+  *height_out = height;
+  uint8_t* img_data = malloc(width * height * 4);
+  memcpy(img_data, encode->image->pxl, (width * height * 4));
+
+  dmtxEncodeDestroy(&encode);
+  return img_data;
 }
