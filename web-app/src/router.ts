@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import Decrypt from './components/Decrypt.vue'
-import Encrypt from './components/Encode.vue'
+import Encrypt from './components/Encrypt.vue'
 import Prettify from './components/Prettify.vue'
 import Scan from './components/Scan.vue'
 

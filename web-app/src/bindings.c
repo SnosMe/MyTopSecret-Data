@@ -4,8 +4,14 @@
 #include <mtsdata.h>
 #include <dmtx.h>
 
+static mtsd_error_source last_error_src = MTSD_ESELF;
+static int last_error_code = 0;
+static char* last_error_msg = NULL;
+
 void mtsd_error(mtsd_error_source src, int error, char* msg) {
-  // TODO
+  last_error_src = src;
+  last_error_code = error;
+  last_error_msg = msg;
 }
 void* mtsd_malloc(size_t size) {
   return malloc(size);
@@ -178,4 +184,62 @@ uint8_t* b_dmtx_create(uint8_t* data, size_t data_size,
 
   dmtxEncodeDestroy(&encode);
   return img_data;
+}
+
+typedef struct {
+  uint8_t* content;
+  size_t size;
+  size_t read;
+} inmem_reader_state;
+
+static int read_handler(void *data, uint8_t *buffer, size_t size, size_t *size_read) {
+  inmem_reader_state *state = data;
+
+  if (state->read == state->size) {
+    *size_read = 0;
+    return 1;
+  }
+
+  if (size > (state->size - state->read)) {
+    size = state->size - state->read;
+  }
+
+  memcpy(buffer, state->content + state->read, size);
+  state->read += size;
+  *size_read = size;
+  return 1;
+}
+
+uint8_t* b_mtsd_encrypt(uint8_t* text, size_t text_size,
+                         uint8_t* password, size_t pass_len) {
+  inmem_reader_state reader = { .read = 0 };
+  reader.content = text;
+  reader.size = text_size;
+
+  mtsd_document doc;
+  if (!mtsd_parse(read_handler, &reader, &doc)) {
+    return NULL;
+  }
+
+  uint8_t* encrypted_data = NULL;
+  size_t encrypted_size = 0;
+  if (!mtsd_encrypt(&doc, password, pass_len, &encrypted_data, &encrypted_size)) {
+    mtsd_doc_free(&doc);
+    return NULL;
+  }
+  mtsd_doc_free(&doc);
+
+  uint8_t* packed = malloc(sizeof(encrypted_size) + encrypted_size);
+  memcpy(packed, &encrypted_size, sizeof(encrypted_size));
+  memcpy(packed + sizeof(encrypted_size), encrypted_data, encrypted_size);
+  mtsd_free(encrypted_data);
+
+  return packed;
+}
+
+void b_last_error(int* src, int* code, char** msg, int* msg_len) {
+  *src = last_error_src;
+  *code = last_error_code;
+  *msg = last_error_msg;
+  *msg_len = strlen(last_error_msg);
 }

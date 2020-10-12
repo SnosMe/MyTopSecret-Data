@@ -12,6 +12,11 @@ interface MtsdNative extends EmscriptenModule { /* eslint-disable @typescript-es
                  modulePx: number, marginPx: number,
                  widthPtr: number, heightPtr: number): number
 
+  _b_last_error(srcPtr: number, codePtr: number, msgPtr: number, msgLenPtr: number): void
+
+  _b_mtsd_encrypt(textPtr: number, textSize: number,
+                  passwordPtr: number, passLen: number): number
+
   stackSave(): number
   stackRestore(ptr: number): void
   stackAlloc(size: number): number
@@ -195,4 +200,86 @@ export async function dmtxCreate (data: Uint8Array, modulePx: number, marginPx: 
   module._free(imgPtr)
 
   return new ImageData(imgArray, width, height)
+}
+
+export async function mtsdEncrypt (text: string, password: string) {
+  const module = await load()
+
+  const textUtf8 = TEXT_ENCODER.encode(text)
+  const textPtr = module._malloc(textUtf8.byteLength)
+  module.HEAPU8.set(textUtf8, textPtr)
+
+  const passUtf8 = TEXT_ENCODER.encode(password)
+  const passPtr = module._malloc(passUtf8.byteLength)
+  module.HEAPU8.set(passUtf8, passPtr)
+
+  try {
+    const binPtr = module._b_mtsd_encrypt(textPtr, textUtf8.byteLength, passPtr, passUtf8.byteLength)
+    if (binPtr) {
+      const encryptedSize = module.HEAP32[binPtr / 4]
+      const encrypted = new Uint8Array(module.HEAPU8.subarray(binPtr + 4, (binPtr + 4) + encryptedSize))
+      module._free(binPtr)
+      return encrypted
+    } else {
+      throw new Error('Cannot encrypt')
+    }
+  } finally {
+    module._free(textPtr)
+    module._free(passPtr)
+  }
+}
+
+const ERROR_SOURCE = [
+  'MTSD_ESELF',
+  'MTSD_EARGON2',
+  'MTSD_ELZMA',
+  'MTSD_ERANDOMBYTES'
+]
+
+const MTSD_ERROR = [
+  'MTSD_EMEMORY',
+  'MTSD_EREADER',
+  'MTSD_EENCODE_RECORD_SIZE',
+  'MTSD_EENCODE_PAYLOAD_SIZE',
+  'MTSD_EDECODE_CORRUPTED_PAYLOAD',
+  'MTSD_EPARSE_UNKNOWN_KEY',
+  'MTSD_ETIME'
+]
+
+export async function getLastError () {
+  const module = await load()
+
+  let error: {
+    source: string
+    code: number | string
+    message: string | null
+  }
+
+  const _stack = module.stackSave()
+  {
+    const srcPtr = module.stackAlloc(4)
+    const codePtr = module.stackAlloc(4)
+    const msgPtr = module.stackAlloc(4)
+    const msgLenPtr = module.stackAlloc(4)
+
+    module._b_last_error(srcPtr, codePtr, msgPtr, msgLenPtr)
+
+    const src = module.HEAP32[srcPtr / 4]
+    const code = module.HEAP32[codePtr / 4]
+    const msgOffset = module.HEAP32[msgPtr / 4]
+    const msgLen = module.HEAP32[msgLenPtr / 4]
+
+    error = {
+      source: ERROR_SOURCE[src],
+      code: src === 0
+        ? MTSD_ERROR[code]
+        : code,
+      message: msgLen
+        ? TEXT_DECODER.decode(module.HEAPU8.subarray(msgOffset, msgOffset + msgLen))
+        : null
+    }
+  }
+  module.stackRestore(_stack)
+
+  return error
 }

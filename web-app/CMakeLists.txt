@@ -16,7 +16,7 @@ target_link_options(mtsd-native PRIVATE
   "SHELL:-s SINGLE_FILE=1"
   "SHELL:-s ALLOW_MEMORY_GROWTH=1"
   "SHELL:-s MEMORY_GROWTH_GEOMETRIC_STEP=0"
-  "SHELL:-s EXPORTED_FUNCTIONS='[_malloc,_free,_b_mtsd_decrypt,_mtsd_container_is_valid,_b_dmtx_find_regions,_b_dmtx_create]'"
+  "SHELL:-s EXPORTED_FUNCTIONS='[_malloc,_free,_b_mtsd_decrypt,_mtsd_container_is_valid,_b_dmtx_find_regions,_b_dmtx_create,_b_last_error,_b_mtsd_encrypt]'"
   "SHELL:-s EXTRA_EXPORTED_RUNTIME_METHODS='[stackSave,stackAlloc,stackRestore]'"
   "-O3"
   "-fno-rtti"

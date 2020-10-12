@@ -259,7 +259,7 @@ static int randombytes_js_randombytes_nodejs(void *buf, size_t n) {
 			return 0;
 		} else {
 			// nodejs
-			var crypto_
+			var crypto_;
 			try {
 				crypto_ = require('crypto');
 			} catch (error) {

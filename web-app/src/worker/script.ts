@@ -1,5 +1,13 @@
 import * as Comlink from 'comlink'
-import { mtsdDecrypt, mtsdIsValid, dmtxFindRegions, DmtxRegion, dmtxCreate } from './native'
+import {
+  mtsdDecrypt,
+  mtsdEncrypt,
+  mtsdIsValid,
+  dmtxCreate,
+  dmtxFindRegions,
+  DmtxRegion,
+  getLastError
+} from './native'
 
 const WorkerBody = {
   mtsdDecrypt (data: Uint8Array, password: string) {
@@ -15,6 +23,13 @@ const WorkerBody = {
   async dmtxCreate (data: Uint8Array, modulePx: number, marginPx: number): Promise<ImageData> {
     const res = await dmtxCreate(data, modulePx, marginPx)
     return Comlink.transfer(res, [res.data.buffer])
+  },
+  async mtsdEncrypt (text: string, password: string): Promise<Uint8Array> {
+    const res = await mtsdEncrypt(text, password)
+    return Comlink.transfer(res, [res.buffer])
+  },
+  getLastError () {
+    return getLastError()
   }
 }
 
