@@ -47,25 +47,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, shallowRef, watchEffect, computed } from 'vue'
+import { defineComponent, shallowRef, watch, computed } from 'vue'
 import Navbar from './Navbar.vue'
 import PageContent from './PageContent.vue'
 import { thread } from '@/worker/interface'
 import { toBocr16 } from '@/util/bocr16'
 import { saveFileAs } from '@/util/saveFileAs'
+import { globalState } from '@/util/global'
 
 export default defineComponent({
   components: { Navbar, PageContent },
   setup () {
-    const encrypted = shallowRef(
-      new Uint8Array([0x7D, 0x25, 0xD2, 0xA0, 0xC8, 0xEE, 0x28, 0x70, 0x29, 0xF7, 0xCD, 0x00, 0x23, 0x9E, 0xBB, 0x49, 0xDF, 0xA6])
-    )
     const charsPerBlock = shallowRef(5)
     const blocksPerLine = shallowRef(4)
 
     const encryptedText = computed(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return toBocr16(encrypted.value)
+      return toBocr16(globalState.encrypted!)
         .match(new RegExp(`.{1,${charsPerBlock.value}}`, 'g'))!.join(' ')
         .match(new RegExp(`.{1,${(charsPerBlock.value + 1) * blocksPerLine.value}}`, 'g'))!
         .map(_ => _.trim())
@@ -73,7 +71,7 @@ export default defineComponent({
     })
 
     function saveMtsd () {
-      saveFileAs(encrypted.value, '_.mtsd.bin', 'application/octet-stream')
+      saveFileAs(globalState.encrypted!, '_.mtsd.bin', 'application/octet-stream')
     }
 
     // --- Data Matrix ---
@@ -86,13 +84,13 @@ export default defineComponent({
     const canvasCtx = canvas.getContext('2d', { alpha: false })
     if (!canvasCtx) throw new Error('Browser is not supported (canvas 2d)')
 
-    watchEffect(async () => {
-      const img = await thread.dmtxCreate(encrypted.value, moduleSize.value, moduleSize.value * marginSize.value)
+    watch([moduleSize, marginSize], async () => {
+      const img = await thread.dmtxCreate(globalState.encrypted!, moduleSize.value, moduleSize.value * marginSize.value)
       canvas.width = img.width
       canvas.height = img.height
       canvasCtx.putImageData(img, 0, 0)
       dmtxImg.value = canvas.toDataURL('image/png')
-    })
+    }, { immediate: true })
 
     return {
       dmtxImg,

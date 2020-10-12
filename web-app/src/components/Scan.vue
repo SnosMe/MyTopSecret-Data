@@ -1,6 +1,13 @@
 <template>
-  <div class="relative w-full flex-1 overflow-hidden" style="max-height: 100vh; max-width: 640px; max-height: 480px;">
-    <video ref="video"></video>
+  <div class="p-4 sm:p-6 border-b sm:border-none w-full max-w-xl flex justify-between items-baseline">
+    <router-link to="/decrypt">&laquo; Cancel</router-link>
+    <div>Budget: <input v-model.number="finderBudget" type="number" class="w-16 text-center border rounded" min="4"> ms</div>
+  </div>
+  <div v-if="!streamInfo.error"
+    class="relative flex-1 overflow-hidden mb-4"
+    style="max-height: 100vh;"
+  >
+    <video ref="video" />
     <div class="absolute origin-top-left"
       :style="{
         width: streamInfo.width + 'px',
@@ -9,28 +16,31 @@
       }">
       <!-- eslint-disable-next-line vue/require-v-for-key -->
       <div v-for="region in dtmxRegions"
-        style="width: 1px; height: 1px;"
-        class="absolute origin-top-left bg-opacity-50"
-        :class="region.isValid ? 'bg-green-500' : 'bg-red-500'"
+        :class="[$style.region, region.isValid ? 'bg-green-500' : 'bg-red-500']"
         :style="`transform: matrix3d(${region.matrix})`"
       />
     </div>
     <div class="absolute right-0 top-0 p-4">
       <button class="px-4 py-1 rounded-full bg-gray-800 shadow text-white bg-opacity-50"
-        :class="{ 'line-through': true }">auto</button>
+        @click="autoSelect = !autoSelect"
+        :class="{ 'line-through': !autoSelect }">auto</button>
     </div>
     <div class="absolute left-0 top-0 p-4 text-sm text-white">
       <div v-if="streamInfo.width">{{ streamInfo.width }} x {{ streamInfo.height }}</div>
       <div v-if="streamInfo.fps">{{ streamInfo.fps }} FPS</div>
     </div>
   </div>
+  <div v-if="streamInfo.error"
+    class="bg-red-200 rounded text-red-700 px-2 m-4"
+    >{{ streamInfo.error }}</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, onMounted, shallowRef } from 'vue'
+import { defineComponent, reactive, onMounted, onBeforeUnmount, shallowRef } from 'vue'
 import { thread } from '@/worker/interface'
-import { isValid } from '@/worker/native'
 import * as Comlink from 'comlink'
+import { globalState } from '@/util/global'
+import router from '@/router'
 
 export default defineComponent({
   setup () {
@@ -39,34 +49,64 @@ export default defineComponent({
       width: 0,
       height: 0,
       fps: 0,
-      scale: 1
+      scale: 1,
+      error: ''
     })
     const dtmxRegions = shallowRef([] as Array<{
       matrix: string
       isValid: boolean
     }>)
+    const finderBudget = shallowRef(41 /* 24 fps */)
+    const autoSelect = shallowRef(true)
+
+    let stream = null as MediaStream | null
 
     const canvas = document.createElement('canvas')
     const canvasCtx = canvas.getContext('2d', { alpha: false })!
 
+    let rafId = 0
     let isFrameUpdated = true
     let isProcessingFrame = false
 
     function frameUpdater () {
       isFrameUpdated = true
-      requestAnimationFrame(frameUpdater)
+      rafId = requestAnimationFrame(frameUpdater)
       if (!isProcessingFrame) {
         processFrame()
       }
     }
 
+    onBeforeUnmount(() => {
+      cancelAnimationFrame(rafId)
+      isFrameUpdated = false
+
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop()
+        })
+      }
+    })
+
     async function processFrame () {
       isProcessingFrame = true
+      isFrameUpdated = false
 
       canvasCtx.drawImage(video.value!, 0, 0)
       const image = canvasCtx.getImageData(0, 0, canvas.width, canvas.height)
 
-      const found = await thread.findDmtx(Comlink.transfer(image, [image.data.buffer]))
+      const found = await thread.dmtxFindRegions(
+        Comlink.transfer(image, [image.data.buffer]),
+        Number(finderBudget.value) || 4
+      )
+
+      if (autoSelect.value) {
+        const firstValid = found.find(region => Boolean(region.data))
+        if (firstValid) {
+          globalState.encrypted = firstValid.data!
+          await router.push('/decrypt')
+          return
+        }
+      }
 
       dtmxRegions.value = found.map(region => {
         const mx = region.posMatrix
@@ -82,7 +122,6 @@ export default defineComponent({
       })
 
       isProcessingFrame = false
-
       if (isFrameUpdated) {
         processFrame()
       }
@@ -92,7 +131,7 @@ export default defineComponent({
       const el = video.value!
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: 'environment' }
           }
@@ -117,12 +156,12 @@ export default defineComponent({
         canvas.width = streamInfo.width
         canvas.height = streamInfo.height
 
-        requestAnimationFrame(frameUpdater)
+        rafId = requestAnimationFrame(frameUpdater)
       } catch (e) {
         if ((e as DOMException).name === 'NotFoundError') {
-          console.log('not found')
+          streamInfo.error = 'No video devices found on your system'
         } else {
-          console.log(e)
+          streamInfo.error = `Unhandled error occurred (${ String(e) || 'n/a' })`
         }
       }
     })
@@ -130,11 +169,18 @@ export default defineComponent({
     return {
       video,
       streamInfo,
-      dtmxRegions
+      dtmxRegions,
+      finderBudget,
+      autoSelect
     }
   }
 })
 </script>
 
-<style lang="postcss">
+<style lang="postcss" module>
+.region {
+  @apply absolute origin-top-left bg-opacity-50;
+  width: 1px;
+  height: 1px;
+}
 </style>

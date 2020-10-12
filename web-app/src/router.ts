@@ -1,12 +1,17 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import Decrypt from './components/Decode.vue'
+import Decrypt from './components/Decrypt.vue'
 import Encrypt from './components/Encode.vue'
 import Prettify from './components/Prettify.vue'
+import Scan from './components/Scan.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/decrypt',
     component: Decrypt
+  },
+  {
+    path: '/decrypt/scan',
+    component: Scan
   },
   {
     path: '/encrypt',
