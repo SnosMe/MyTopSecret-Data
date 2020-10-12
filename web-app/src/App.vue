@@ -1,33 +1,40 @@
 <template>
-  <div class="p-4 sm:p-6 mx-auto max-w-xl border-b sm:border-none">
-    <div class="flex">
-      <button class="font-semibold">Decode</button>
-      <button class="ml-2">Encode</button>
-    </div>
-    <div class="flex mt-2">
-      <button class="font-semibold">Text</button>
-      <button class="ml-2">Scan</button>
-      <button class="ml-2">File</button>
-    </div>
-  </div>
-  <decode />
+  <router-view />
+  <footer class="text-xs mb-4">
+    <span>&copy; {{ new Date().getFullYear() }} Alexander Drozdov</span>
+  </footer>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Decode from './components/Decode.vue'
 
 export default defineComponent({
   name: 'App',
-  components: {
-    Decode
-  }
+  components: {}
 })
 </script>
 
 <style lang="postcss">
 @tailwind base;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Inconsolata SemiExpandedSemiBold';
+  font-weight: normal;
+  font-style: normal;
+  src: url('/fonts/InconsolataSemiExpanded-SemiBold.ttf') format('truetype')
+}
+
+.font-ocr {
+  font-family: "Inconsolata SemiExpandedSemiBold", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
 
 [disabled] {
   @apply cursor-not-allowed;
