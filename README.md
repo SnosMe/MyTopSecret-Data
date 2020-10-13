@@ -50,8 +50,8 @@ mtsd encrypted.bin
 
 ```
 pwd = from_user_input()
-salt = derive_salt_from(time_now, random_bytes)
-key, nonce = Argon2d(iter=2,mem=512MB,parallel=4)
+salt = derive_salt_from([time_now, random_bytes])
+key, nonce = Argon2d(iter=3,mem=64MB,parallel=2)
 encrypted = AES256_CTR(data, key, nonce)
 ```
 

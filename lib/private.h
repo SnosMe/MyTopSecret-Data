@@ -7,9 +7,9 @@
 #define MTSD_LZMA_LC          0
 #define MTSD_LZMA_LP          0
 #define MTSD_LZMA_PB          0
-#define MTSD_ARGON2_ITER      2
-#define MTSD_ARGON2_MEM       (1 << 19)
-#define MTSD_ARGON2_THREADS   4
+#define MTSD_ARGON2_ITER      3
+#define MTSD_ARGON2_MEM       (1 << 16)
+#define MTSD_ARGON2_THREADS   2
 
 #define MTSD_CHECK(result)                                                                                             \
   if ((result) != MTSD_OK) {                                                                                           \
