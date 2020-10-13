@@ -22,7 +22,7 @@ export default defineComponent({
   font-family: 'Inconsolata SemiExpandedSemiBold';
   font-weight: normal;
   font-style: normal;
-  src: url('/fonts/InconsolataSemiExpanded-SemiBold.ttf') format('truetype')
+  src: url('./assets/fonts/InconsolataSemiExpanded-SemiBold.ttf') format('truetype')
 }
 
 .font-ocr {

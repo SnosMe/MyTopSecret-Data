@@ -40,7 +40,7 @@
     <div v-if="encodedAt"
       class="mb-4 text-sm italic text-gray-600 px-4 sm:px-6">{{ encodedAt }}</div>
     <pre v-if="doc"
-      class="shadow p-4 rounded mb-4"
+      class="shadow p-4 sm:rounded mb-4"
       v-html="doc" />
   </div>
 </template>

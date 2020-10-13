@@ -14,7 +14,7 @@
     <div class="flex justify-between mb-2 items-baseline">
       <button class="rounded px-2 text-white bg-gray-700"
         @click="saveMtsd">Download _.mtsd.bin</button>
-      <a href="/fonts/InconsolataSemiExpanded-SemiBold.ttf"
+      <a :href="`${publicPath}fonts/InconsolataSemiExpanded-SemiBold.ttf`" download
         class="text-sm text-gray-700 hidden sm:block">Download font</a>
     </div>
     <pre v-if="encryptedText"
@@ -99,7 +99,8 @@ export default defineComponent({
       encryptedText,
       charsPerBlock,
       blocksPerLine,
-      saveMtsd
+      saveMtsd,
+      publicPath: process.env.BASE_URL
     }
   }
 })
