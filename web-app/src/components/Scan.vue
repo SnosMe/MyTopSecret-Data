@@ -65,11 +65,15 @@ export default defineComponent({
     const canvasCtx = canvas.getContext('2d', { alpha: false })!
 
     let rafId = 0
-    let isFrameUpdated = true
+    let nextFrame = null as ImageData | null
     let isProcessingFrame = false
 
     function frameUpdater () {
-      isFrameUpdated = true
+      if (!nextFrame) {
+        canvasCtx.drawImage(video.value!, 0, 0)
+        nextFrame = canvasCtx.getImageData(0, 0, canvas.width, canvas.height)
+      }
+
       rafId = requestAnimationFrame(frameUpdater)
       if (!isProcessingFrame) {
         processFrame()
@@ -78,7 +82,7 @@ export default defineComponent({
 
     onBeforeUnmount(() => {
       cancelAnimationFrame(rafId)
-      isFrameUpdated = false
+      nextFrame = null
 
       if (stream) {
         stream.getTracks().forEach(track => {
@@ -89,10 +93,8 @@ export default defineComponent({
 
     async function processFrame () {
       isProcessingFrame = true
-      isFrameUpdated = false
-
-      canvasCtx.drawImage(video.value!, 0, 0)
-      const image = canvasCtx.getImageData(0, 0, canvas.width, canvas.height)
+      const image = nextFrame!
+      nextFrame = null
 
       const found = await thread.dmtxFindRegions(
         Comlink.transfer(image, [image.data.buffer]),
@@ -122,7 +124,7 @@ export default defineComponent({
       })
 
       isProcessingFrame = false
-      if (isFrameUpdated) {
+      if (nextFrame) {
         processFrame()
       }
     }
@@ -139,10 +141,10 @@ export default defineComponent({
         const track = stream.getVideoTracks()[0]
         const cap = track.getCapabilities()
 
-        await track.applyConstraints({
-          width: cap.width?.max,
-          height: cap.height?.max
-        })
+        // await track.applyConstraints({
+        //   width: cap.width?.max,
+        //   height: cap.height?.max
+        // })
 
         el.srcObject = stream
         await el.play()
