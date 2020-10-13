@@ -1,0 +1,39 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: mymindstorm/setup-emsdk@v7
+    - run: emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
+    - run: cmake --build build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: web-app-bindings
+        path: build/web-app/mtsd-native.js
+
+  web-app:
+    needs: wasm
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/download-artifact@v2
+      with:
+        name: web-app-bindings
+        path: web-app/src/worker
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12'
+    - run: yarn --frozen-lockfile
+    - run: yarn build
+      env:
+        GITHUB_PAGES: 1
+    - name: Publish
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist

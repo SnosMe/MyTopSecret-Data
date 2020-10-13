@@ -10,7 +10,7 @@ on:
       - README.md
 
 jobs:
-  windows:
+  windows-cli:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -20,15 +20,3 @@ jobs:
       with:
         name: mtsd-cli-win64
         path: build/cli/Release/mtsd-cli.exe
-
-  wasm:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: mymindstorm/setup-emsdk@v7
-    - run: emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
-    - run: cmake --build build
-    - uses: actions/upload-artifact@v2
-      with:
-        name: web-app-bindings
-        path: build/web-app/mtsd-native.js
