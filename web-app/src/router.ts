@@ -3,8 +3,13 @@ import Decrypt from './components/Decrypt.vue'
 import Encrypt from './components/Encrypt.vue'
 import Prettify from './components/Prettify.vue'
 import Scan from './components/Scan.vue'
+import MainMenu from './components/MainMenu.vue'
 
 const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/',
+    component: MainMenu
+  },
   {
     path: '/decrypt',
     component: Decrypt

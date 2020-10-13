@@ -39,16 +39,9 @@
   <div class="max-w-xl w-full">
     <div v-if="encodedAt"
       class="mb-4 text-sm italic text-gray-600 px-4 sm:px-6">{{ encodedAt }}</div>
-    <div v-if="doc" class="mb-4">
-      <!-- eslint-disable-next-line vue/require-v-for-key -->
-      <div v-for="record of doc"
-        class="shadow p-4 rounded">
-        <!-- eslint-disable-next-line vue/require-v-for-key -->
-        <div v-for="field of record">
-          <span class="text-blue-500 font-semibold">{{ field.key }}</span>: {{ field.value }}
-        </div>
-      </div>
-    </div>
+    <pre v-if="doc"
+      class="shadow p-4 rounded mb-4"
+      v-html="doc" />
   </div>
 </template>
 
@@ -107,7 +100,7 @@ export default defineComponent({
       isRunning: false,
       error: ''
     })
-    const doc = ref(null as null | MtsdDocument)
+    const doc = ref(null as null | string)
     const decryptBtn = computed(() => encoded.isValid && !decryption.isRunning)
     async function decrypt () {
       try {
@@ -115,7 +108,15 @@ export default defineComponent({
         decryption.error = ''
         const pass = encoded.password
         encoded.password = ''
-        doc.value = await thread.mtsdDecrypt(textBin.value!, pass)
+        const doc_ = await thread.mtsdDecrypt(textBin.value!, pass)
+        doc.value = doc_.map(record =>
+          record.map(field => {
+            const isMultiline = field.value.includes('\n')
+            return isMultiline
+              ? `${field.key}:\n${field.value.split('\n').map(ln => `  ${ln}`).join('\n')}`
+              : `${field.key}: ${field.value}`
+          }).join('\n')
+        ).join('\n---\n')
       } catch (e) {
         decryption.error = (e as Error).message
       } finally {
