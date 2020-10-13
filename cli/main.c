@@ -25,7 +25,7 @@ void mtsd_free(void* ptr) {
 
 void read_from_file(const char* filename, uint8_t** content, size_t* size);
 void write_to_file(const char* filename, uint8_t* data, size_t size);
-void getpass(const char* prompt, uint8_t* pass, size_t max, size_t* pass_len);
+void cli_getpass(const char* prompt, uint8_t* pass, size_t max, size_t* pass_len);
 
 typedef struct {
   uint8_t* content;
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
   if (argc == 1 || !strcmp(argv[1], "--help")) {
     printf(
-      "MyTopSecret-Data v1.0 (c) Alexander Drozdov\n"
+      "MyTopSecret-Data v1.0 (c) 2020 Alexander Drozdov\n"
       "----------------\n"
       "     __ ____    ____  _________   ______   ______\n"
       "    / /|_   \\  /   _||  _   _  |.' ____ \\ |_   _ `.\n"
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
 
     uint8_t password[MAX_PASS_SIZE];
     size_t pass_len;
-    getpass("Password: ", password, MAX_PASS_SIZE, &pass_len);
+    cli_getpass("Password: ", password, MAX_PASS_SIZE, &pass_len);
 
     uint8_t* encrypted_data = NULL;
     size_t encrypted_size = 0;
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 
     uint8_t password[MAX_PASS_SIZE];
     size_t pass_len;
-    getpass("Password: ", password, MAX_PASS_SIZE, &pass_len);
+    cli_getpass("Password: ", password, MAX_PASS_SIZE, &pass_len);
 
     printf("Decrypting...\n");
 

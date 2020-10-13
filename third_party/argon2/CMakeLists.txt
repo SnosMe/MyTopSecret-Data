@@ -13,4 +13,9 @@ if(EMSCRIPTEN)
   target_compile_definitions(argon2 PRIVATE "ARGON2_NO_THREADS")
 endif()
 
+if(UNIX AND NOT EMSCRIPTEN)
+  target_compile_options(argon2 PRIVATE "-pthread")
+  target_link_libraries(argon2 PRIVATE pthread)
+endif()
+
 target_include_directories(argon2 PUBLIC "include")

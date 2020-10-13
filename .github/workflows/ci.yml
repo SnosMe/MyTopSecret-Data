@@ -20,3 +20,14 @@ jobs:
       with:
         name: mtsd-cli-win64
         path: build/cli/Release/mtsd-cli.exe
+
+  linux-cli:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+    - run: cmake --build build
+    - uses: actions/upload-artifact@v2.2.0
+      with:
+        name: mtsd-cli-linux64
+        path: build/cli/mtsd-cli
