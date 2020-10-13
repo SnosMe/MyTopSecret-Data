@@ -9,7 +9,7 @@ target_sources(argon2 PRIVATE
   "src/opt.c")
 
 if(EMSCRIPTEN)
-  target_compile_options(argon2 PRIVATE "-msimd128" "-msse2") # TODO: SSSE3
+  target_compile_options(argon2 PRIVATE "-msimd128" "-msse2") # TODO: -mssse3, when wasm perf improves
   target_compile_definitions(argon2 PRIVATE "ARGON2_NO_THREADS")
 endif()
 
