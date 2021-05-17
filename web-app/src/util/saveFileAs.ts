@@ -1,5 +1,5 @@
 
-export function saveFileAs (data: Uint8Array, fileName: string, mimeType: string) {
+export function saveFileAs (data: Uint8Array, fileName: string, mimeType: string): void {
   const blob = new Blob([data], { type: mimeType })
   const url = window.URL.createObjectURL(blob)
 

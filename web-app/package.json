@@ -8,31 +8,31 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "comlink": "^4.3.0",
-    "register-service-worker": "^1.7.1",
-    "tailwindcss": "^1.8.10",
-    "vue": "^3.0.0-0",
-    "vue-router": "^4.0.0-0"
+    "comlink": "^4.3.1",
+    "register-service-worker": "^1.7.2",
+    "tailwindcss": "^2.1.2",
+    "vue": "^3.0.4",
+    "vue-router": "^4.0.3"
   },
   "devDependencies": {
     "@types/emscripten": "^1.39.4",
-    "@typescript-eslint/eslint-plugin": "^2.33.0",
-    "@typescript-eslint/parser": "^2.33.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-pwa": "~4.5.0",
-    "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/compiler-sfc": "^3.0.0-0",
-    "@vue/eslint-config-standard": "^5.1.2",
-    "@vue/eslint-config-typescript": "^5.0.2",
-    "eslint": "^6.7.2",
+    "@typescript-eslint/eslint-plugin": "^4.15.1",
+    "@typescript-eslint/parser": "^4.15.1",
+    "@vue/cli-plugin-eslint": "5.0.0-beta.1",
+    "@vue/cli-plugin-pwa": "5.0.0-beta.1",
+    "@vue/cli-plugin-router": "5.0.0-beta.1",
+    "@vue/cli-plugin-typescript": "5.0.0-beta.1",
+    "@vue/cli-service": "5.0.0-beta.1",
+    "@vue/compiler-sfc": "^3.0.4",
+    "@vue/eslint-config-standard": "^6.0.0",
+    "@vue/eslint-config-typescript": "^7.0.0",
+    "eslint": "^7.20.0",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "eslint-plugin-vue": "^7.0.0-0",
-    "typescript": "~3.9.3",
-    "worker-loader": "^3.0.3"
+    "eslint-plugin-promise": "^4.3.1",
+    "eslint-plugin-vue": "^7.2.0",
+    "typescript": "~4.1.5",
+    "worker-loader": "^3.0.8"
   },
   "eslintConfig": {
     "root": true,
@@ -47,21 +47,21 @@
     "parserOptions": {
       "ecmaVersion": 2020
     },
-    "rules": {
-      "@typescript-eslint/member-delimiter-style": [
-        "off"
-      ],
-      "@typescript-eslint/no-use-before-define": [
-        "off"
-      ]
-    },
+    "rules": {},
     "ignorePatterns": [
       "src/worker/mtsd-native.js"
     ]
   },
+  "postcss": {
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
+  },
   "browserslist": [
     "> 1%",
     "last 2 versions",
-    "not dead"
+    "not dead",
+    "not ie 11"
   ]
 }

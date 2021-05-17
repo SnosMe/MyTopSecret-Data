@@ -1,6 +1,6 @@
 /// <reference types="emscripten" />
 
-interface MtsdNative extends EmscriptenModule { /* eslint-disable @typescript-eslint/camelcase */
+interface MtsdNative extends EmscriptenModule { /* eslint-disable camelcase */
   _b_mtsd_decrypt(encryptedDataPtr: number, encryptedSize: number,
                   passwordPtr: number, passLen: number): number
 
@@ -22,6 +22,7 @@ interface MtsdNative extends EmscriptenModule { /* eslint-disable @typescript-es
   stackAlloc(size: number): number
 }
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Module = require('./mtsd-native.js') as EmscriptenModuleFactory<MtsdNative>
 
 let module_: ReturnType<typeof Module>
@@ -107,7 +108,7 @@ function unpackDmtxRegions (packed: Uint8Array): DmtxRegion[] {
   })
 }
 
-export async function mtsdDecrypt (data: Uint8Array, password: string) {
+export async function mtsdDecrypt (data: Uint8Array, password: string): Promise<MtsdDocument> {
   const module = await load()
 
   const encryptedPtr = module._malloc(data.byteLength)
@@ -132,7 +133,7 @@ export async function mtsdDecrypt (data: Uint8Array, password: string) {
   }
 }
 
-export async function mtsdIsValid (data: Uint8Array) {
+export async function mtsdIsValid (data: Uint8Array): Promise<boolean> {
   const module = await load()
 
   const encryptedPtr = module._malloc(data.byteLength)
@@ -144,7 +145,7 @@ export async function mtsdIsValid (data: Uint8Array) {
   return Boolean(isValid)
 }
 
-export function mtsdCreationDate (data: Uint8Array) {
+export function mtsdCreationDate (data: Uint8Array): Date {
   const OFFSET = 3
   let ts = (data[OFFSET + 3] << 24) | (data[OFFSET + 2] << 16) | (data[OFFSET + 1] << 8) | data[OFFSET]
 
@@ -154,7 +155,7 @@ export function mtsdCreationDate (data: Uint8Array) {
   return new Date(ts * 1000)
 }
 
-export async function dmtxFindRegions (image: ImageData, budgetMs: number) {
+export async function dmtxFindRegions (image: ImageData, budgetMs: number): Promise<DmtxRegion[]> {
   const module = await load()
 
   const imgDataPtr = module._malloc(image.data.byteLength)
@@ -172,7 +173,7 @@ export async function dmtxFindRegions (image: ImageData, budgetMs: number) {
   }
 }
 
-export async function dmtxCreate (data: Uint8Array, modulePx: number, marginPx: number) {
+export async function dmtxCreate (data: Uint8Array, modulePx: number, marginPx: number): Promise<ImageData> {
   const module = await load()
 
   const _stack = module.stackSave()
@@ -202,7 +203,7 @@ export async function dmtxCreate (data: Uint8Array, modulePx: number, marginPx: 
   return new ImageData(imgArray, width, height)
 }
 
-export async function mtsdEncrypt (text: string, password: string) {
+export async function mtsdEncrypt (text: string, password: string): Promise<Uint8Array> {
   const module = await load()
 
   const textUtf8 = TEXT_ENCODER.encode(text)
@@ -246,14 +247,16 @@ const MTSD_ERROR = [
   'MTSD_ETIME'
 ]
 
-export async function getLastError () {
+interface MtsdErrror {
+  source: string
+  code: number | string
+  message: string | null
+}
+
+export async function getLastError (): Promise<MtsdErrror> {
   const module = await load()
 
-  let error: {
-    source: string
-    code: number | string
-    message: string | null
-  }
+  let error: MtsdErrror
 
   const _stack = module.stackSave()
   {

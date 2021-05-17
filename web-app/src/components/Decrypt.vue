@@ -50,7 +50,7 @@ import { computed, defineComponent, reactive, watch, ref } from 'vue'
 import Navbar from './Navbar.vue'
 import PageContent from './PageContent.vue'
 import { thread } from '@/worker/interface'
-import { mtsdCreationDate, MtsdDocument } from '@/worker/native'
+import { mtsdCreationDate } from '@/worker/native'
 import { toBocr16, fromBocr16 } from '@/util/bocr16'
 import { globalState } from '@/util/global'
 

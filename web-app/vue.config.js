@@ -87,5 +87,14 @@ module.exports = {
         args[0].title = 'MyTopSecret-Data'
         return args
       })
+  },
+  configureWebpack: {
+    resolve: {
+      fallback: {
+        path: false,
+        fs: false,
+        crypto: false
+      }
+    }
   }
 }

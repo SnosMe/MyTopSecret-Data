@@ -12,13 +12,13 @@ const BOCR16_TO_BYTE = new Map(
   BYTE_TO_BOCR16.map((str, byte) => [str, byte])
 )
 
-export function toBocr16 (data: Uint8Array) {
+export function toBocr16 (data: Uint8Array): string {
   return Array.from(data)
     .map(byte => BYTE_TO_BOCR16[byte])
     .join('')
 }
 
-export function fromBocr16 (text: string) {
+export function fromBocr16 (text: string): Uint8Array {
   if (text.length % 2 !== 0) {
     throw new Error('Invalid bocr16 text')
   }
