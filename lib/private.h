@@ -1,9 +1,8 @@
 #include "mtsdata.h"
 
-#define MTSD_RANDOM_BYTES     4
+#define MTSD_RANDOM_BYTES     3
 #define MTSD_SALT_SIZE        16
 #define MTSD_PAYLOAD_MAX_SIZE 0xFFFF
-#define MTSD_DATE_FROM        915148800 // 01/01/1999
 #define MTSD_LZMA_LC          0
 #define MTSD_LZMA_LP          0
 #define MTSD_LZMA_PB          0

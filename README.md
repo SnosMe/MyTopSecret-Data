@@ -5,14 +5,12 @@ Encrypts data with emphasis on storage space.
 ### Binary layout
 
 ```
-|0|1,2|3,4,5,6|7,8,9,10|11|12........n|
+|0,1|2,3,4|5,6,7|8........n|
 
-[ 0;  0] - Magic number
-[ 1;  2] - CRC16 of [3; n]
-[ 3;  6] - Time in seconds since 01/01/1999
-[ 7; 10] - Random bytes
-[11; 11] - Is payload compressed
-[12;  n] - AES encrypted data
+[0; 1] - CRC16 of [2; n]
+[2; 4] - Is payload compressed (1 bit), Time in hours since epoch (23 bit)
+[5; 7] - Random bytes
+[8; n] - AES encrypted data
 ```
 
 ### Use cases
@@ -51,7 +49,7 @@ mtsd encrypted.bin
 ```
 pwd = from_user_input()
 salt = derive_salt_from([time_now, random_bytes])
-key, nonce = Argon2d(iter=3,mem=64MB,parallel=2)
+key, nonce = Argon2id(iter=3,mem=64MB,parallel=2)
 encrypted = AES256_CTR(data, key, nonce)
 ```
 

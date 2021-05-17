@@ -63,7 +63,7 @@ static mtsd_res derive_bytes(uint8_t* salt, uint8_t* pwd, size_t pwd_size, uint8
     .flags = ARGON2_DEFAULT_FLAGS
   };
 
-  int err = argon2d_ctx(&ctx);
+  int err = argon2id_ctx(&ctx);
   if (err != ARGON2_OK) {
     mtsd_error(MTSD_EARGON2, err, NULL);
     return MTSD_ERR;
