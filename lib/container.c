@@ -205,11 +205,23 @@ int mtsd_container_is_valid(uint8_t* data, size_t size)
   return (crc == actual);
 }
 
-static int is_compressed_payload(mtsd_header* header) {
+uint64_t mtsd_container_get_date(uint8_t* data)
+{
+  uint64_t result = 0;
+  mtsd_header* header = (mtsd_header*)data;
+  result |= (header->date[0] & 0x7F) << (8 * 2);
+  result |= (header->date[1]) << (8 * 1);
+  result |= (header->date[2]) << (8 * 0);
+  return result * MTSD_DATE_RESOLUTION;
+}
+
+static int is_compressed_payload(mtsd_header* header)
+{
   return header->is_compressed & 0x80;
 }
 
-static void set_is_compressed_payload(mtsd_header* header, int is_compressed) {
+static void set_is_compressed_payload(mtsd_header* header, int is_compressed)
+{
   header->is_compressed = (is_compressed)
     ? header->is_compressed | 0x80
     : header->is_compressed & 0x7F;

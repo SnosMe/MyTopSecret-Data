@@ -6,6 +6,8 @@ interface MtsdNative extends EmscriptenModule { /* eslint-disable camelcase */
 
   _mtsd_container_is_valid(encryptedDataPtr: number, encryptedSize: number): number
 
+  _mtsd_container_get_date(encryptedDataPtr: number): number
+
   _b_dmtx_find_regions(imgDataPtr: number, imgW: number, imgH: number, budget: number): number
 
   _b_dmtx_create(dataPtr: number, dataSize: number,
@@ -146,13 +148,13 @@ export async function mtsdIsValid (data: Uint8Array): Promise<boolean> {
 }
 
 export function mtsdCreationDate (data: Uint8Array): Date {
-  const OFFSET = 3
-  let ts = (data[OFFSET + 3] << 24) | (data[OFFSET + 2] << 16) | (data[OFFSET + 1] << 8) | data[OFFSET]
-
-  const MTSD_DATE_FROM = 915148800
-  ts += MTSD_DATE_FROM
-
-  return new Date(ts * 1000)
+  const OFFSET = 2
+  const hours = (
+    ((data[OFFSET + 0] & 0x7F) << (8 * 2)) |
+    ((data[OFFSET + 1]) << (8 * 1)) |
+    ((data[OFFSET + 2]) << (8 * 0))
+  )
+  return new Date(hours * 3600 * 1000)
 }
 
 export async function dmtxFindRegions (image: ImageData, budgetMs: number): Promise<DmtxRegion[]> {
