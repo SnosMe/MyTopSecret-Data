@@ -1,6 +1,6 @@
 <template>
   <router-view />
-  <footer class="text-xs mb-4 whitespace-no-wrap">
+  <footer class="text-xs mb-4 whitespace-nowrap">
     <span>&copy; {{ new Date().getFullYear() }} Alexander Drozdov</span>
   </footer>
 </template>

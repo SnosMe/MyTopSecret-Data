@@ -3,11 +3,11 @@
   <page-content>
     <div class="hidden sm:flex mb-4">
       <div class="w-1/2 flex">
-        <label for="bocr16_chars" class="whitespace-no-wrap mr-4">Characters / block:</label>
+        <label for="bocr16_chars" class="whitespace-nowrap mr-4">Characters / block:</label>
         <input v-model.number="charsPerBlock" type="number" id="bocr16_chars" min="1" :class="$style.numberInput">
       </div>
       <div class="w-1/2 flex ml-8">
-        <label for="bocr16_blocks" class="whitespace-no-wrap mr-4">Blocks / line:</label>
+        <label for="bocr16_blocks" class="whitespace-nowrap mr-4">Blocks / line:</label>
         <input v-model.number="blocksPerLine" type="number" id="bocr16_blocks" min="1" :class="$style.numberInput">
       </div>
     </div>
