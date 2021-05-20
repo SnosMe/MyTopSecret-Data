@@ -137,12 +137,12 @@ mtsd_res mtsd_parse(mtsd_read_callback read_callback, void* callback_data, mtsd_
   }
 
   // for (;;) {
-  //   MTSD_CHECK(mtsd_parser_lexer_next(state));
-  //   if (TOKEN(state).kind == MTSD_STREAM_END_TOKEN) {
+  //   MTSD_CHECK(mtsd_parser_lexer_next(&state));
+  //   if (TOKEN(&state).kind == MTSD_STREAM_END_TOKEN) {
   //     break;
   //   } else {
-  //     mtsd_parser_print_token(state);
-  //     state->lexer.consumed = 1;
+  //     mtsd_parser_print_token(&state);
+  //     state.lexer.consumed = 1;
   //   }
   // }
 }
