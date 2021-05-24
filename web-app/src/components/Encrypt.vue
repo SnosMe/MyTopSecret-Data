@@ -1,8 +1,16 @@
 <template>
   <navbar />
   <page-content>
+    <button @click="showHelp = !showHelp" class="text-sm text-gray-700 mb-2">Document format reference</button>
+    <div v-if="showHelp" class="mb-2 border border-gray-200 rounded p-2">
+      <p>Document consists of records separated by three dashes.</p>
+      <p>Each record has multiple key-value pairs. Key and value are separated by a colon. Keys can be repeated.
+         The value is a text, either on same line or starts on next line indented by 2 spaces.</p>
+      <p>Supported keys: <i>{{ supportedKeys }}</i>.</p>
+    </div>
     <form>
-      <textarea class="border w-full font-mono leading-snug p-2 rounded shadow-inner mb-1"
+      <textarea placeholder="password: example&#10;---&#10;text:&#10;  multiline&#10;  example"
+        class="border w-full font-mono leading-snug p-2 rounded shadow-inner mb-1"
         spellcheck="false" rows="8"
         v-model="rawText" />
       <div class="flex items-center justify-between flex-wrap -m-1">
@@ -29,6 +37,7 @@ import { thread } from '@/worker/interface'
 import Navbar from './Navbar.vue'
 import PageContent from './PageContent.vue'
 import { globalState } from '@/util/global'
+import { KEYID } from '../worker/native'
 import router from '@/router'
 
 export default defineComponent({
@@ -38,6 +47,7 @@ export default defineComponent({
     const secret = shallowRef('')
     const isEncrypting = shallowRef(false)
     const encryptError = shallowRef<string | null>(null)
+    const showHelp = shallowRef(false)
 
     async function encrypt () {
       isEncrypting.value = true
@@ -64,7 +74,9 @@ export default defineComponent({
       isEncrypting,
       secret,
       encrypt,
-      encryptError
+      encryptError,
+      showHelp,
+      supportedKeys: KEYID.slice(1).sort().join(', ')
     }
   }
 })

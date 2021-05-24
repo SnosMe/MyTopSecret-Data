@@ -39,7 +39,7 @@ function load () {
 const TEXT_DECODER = new TextDecoder('utf-8')
 const TEXT_ENCODER = new TextEncoder()
 
-const KEYID = [
+export const KEYID = [
   '__NULL',
   'email',
   'password',
