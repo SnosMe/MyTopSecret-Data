@@ -62,6 +62,13 @@ import { globalState } from '@/util/global'
 
 export default defineComponent({
   components: { Navbar, PageContent },
+  beforeRouteEnter (to, from, next) {
+    if (!globalState.encrypted) {
+      next('/')
+    } else {
+      next(true)
+    }
+  },
   setup () {
     const charsPerBlock = shallowRef(5)
     const blocksPerLine = shallowRef(4)
