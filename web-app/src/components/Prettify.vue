@@ -77,8 +77,8 @@ export default defineComponent({
     const encryptedText = computed(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return toText(binToTextKind.value, globalState.encrypted!)
-        .match(new RegExp(`.{1,${charsPerBlock.value}}`, 'g'))!.join(' ')
-        .match(new RegExp(`.{1,${(charsPerBlock.value + 1) * blocksPerLine.value}}`, 'g'))!
+        .match(new RegExp(`.{1,${Math.max(charsPerBlock.value, 1)}}`, 'g'))!.join(' ')
+        .match(new RegExp(`.{1,${(Math.max(charsPerBlock.value, 1) + 1) * Math.max(blocksPerLine.value, 1)}}`, 'g'))!
         .map(_ => _.trim())
         .join('\n')
     })
