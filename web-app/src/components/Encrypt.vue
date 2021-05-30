@@ -1,7 +1,7 @@
 <template>
   <navbar />
   <page-content>
-    <button @click="showHelp = !showHelp" class="text-sm text-gray-700 mb-2">Document format reference</button>
+    <button @click="toggleHelp" class="text-sm text-gray-700 mb-2">Document format reference</button>
     <div v-if="showHelp" class="mb-2 border border-gray-200 rounded p-2">
       <p>Document consists of records separated by three dashes.</p>
       <p>Each record has multiple key-value pairs. Key and value are separated by a colon. Keys can be repeated.
@@ -65,6 +65,10 @@ export default defineComponent({
       }
     }
 
+    function toggleHelp () {
+      showHelp.value = !showHelp.value
+    }
+
     watch(rawText, () => {
       encryptError.value = null
     })
@@ -76,6 +80,7 @@ export default defineComponent({
       encrypt,
       encryptError,
       showHelp,
+      toggleHelp,
       supportedKeys: KEYID.slice(1).sort().join(', ')
     }
   }
