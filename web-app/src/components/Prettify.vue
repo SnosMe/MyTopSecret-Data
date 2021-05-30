@@ -1,21 +1,26 @@
 <template>
   <navbar />
   <page-content>
-    <div class="hidden sm:flex mb-4">
-      <div class="w-1/2 flex">
+    <div class="flex-wrap sm:flex-nowrap flex items-baseline">
+      <div class="w-full sm:w-1/2 flex">
         <label for="bocr16_chars" class="whitespace-nowrap mr-4">Characters / block:</label>
         <input v-model.number="charsPerBlock" type="number" id="bocr16_chars" min="1" :class="$style.numberInput">
       </div>
-      <div class="w-1/2 flex ml-8">
+      <div class="w-full sm:w-1/2 flex sm:ml-8 mb-4 mt-1 sm:mt-0">
         <label for="bocr16_blocks" class="whitespace-nowrap mr-4">Blocks / line:</label>
         <input v-model.number="blocksPerLine" type="number" id="bocr16_blocks" min="1" :class="$style.numberInput">
       </div>
     </div>
-    <div class="flex justify-between mb-2 items-baseline">
+    <div class="flex mb-2 items-baseline">
       <button class="rounded px-2 text-white bg-gray-700"
         @click="saveMtsd">Download _.mtsd.bin</button>
       <a :href="`${publicPath}fonts/InconsolataSemiExpanded-SemiBold.ttf`" download
-        class="text-sm text-gray-700 hidden sm:block">Download font</a>
+        class="text-sm text-gray-700 ml-2 hidden sm:block">Download font</a>
+      <select v-model="binToTextKind" class="ml-auto border rounded ml-2 px-1">
+        <option>hex</option>
+        <option>base64</option>
+        <option>bocr16</option>
+      </select>
     </div>
     <pre v-if="encryptedText"
       :class="$style.encryptedText" class="font-ocr"
@@ -51,7 +56,7 @@ import { defineComponent, shallowRef, watch, computed } from 'vue'
 import Navbar from './Navbar.vue'
 import PageContent from './PageContent.vue'
 import { thread } from '@/worker/interface'
-import { toBocr16 } from '@/util/bocr16'
+import { toText } from '@/util/binText'
 import { saveFileAs } from '@/util/saveFileAs'
 import { globalState } from '@/util/global'
 
@@ -60,10 +65,11 @@ export default defineComponent({
   setup () {
     const charsPerBlock = shallowRef(5)
     const blocksPerLine = shallowRef(4)
+    const binToTextKind = shallowRef('hex')
 
     const encryptedText = computed(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return toBocr16(globalState.encrypted!)
+      return toText(binToTextKind.value, globalState.encrypted!)
         .match(new RegExp(`.{1,${charsPerBlock.value}}`, 'g'))!.join(' ')
         .match(new RegExp(`.{1,${(charsPerBlock.value + 1) * blocksPerLine.value}}`, 'g'))!
         .map(_ => _.trim())
@@ -99,6 +105,7 @@ export default defineComponent({
       encryptedText,
       charsPerBlock,
       blocksPerLine,
+      binToTextKind,
       saveMtsd,
       publicPath: process.env.BASE_URL
     }

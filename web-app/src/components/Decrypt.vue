@@ -11,9 +11,14 @@
   </navbar>
   <page-content class="relative">
     <form>
-      <div class="absolute top-0 right-0 p-2">
+      <div class="flex mb-2 items-center">
+        <select v-model="encoded.textKind" class="border rounded mr-2 px-1">
+          <option>hex</option>
+          <option>base64</option>
+          <option>bocr16</option>
+        </select>
         <div v-if="encoded.isValid !== undefined"
-          class="border rounded px-2 leading-tight shadow"
+          class="border rounded px-2 leading-tight ml-auto"
           :class="encoded.isValid ? 'bg-green-200 border-green-300 text-green-700' : 'bg-red-200 border-red-300 text-red-700'"
         >{{ encoded.isValid ? 'Valid' : 'Invalid' }}</div>
       </div>
@@ -51,7 +56,7 @@ import Navbar from './Navbar.vue'
 import PageContent from './PageContent.vue'
 import { thread } from '@/worker/interface'
 import { mtsdCreationDate } from '@/worker/native'
-import { toBocr16, fromBocr16 } from '@/util/bocr16'
+import { toText, toBin } from '@/util/binText'
 import { globalState } from '@/util/global'
 
 export default defineComponent({
@@ -60,11 +65,12 @@ export default defineComponent({
     const encoded = reactive({
       text: '',
       password: '',
+      textKind: 'hex',
       isValid: undefined as boolean | undefined
     })
 
     if (globalState.encrypted) {
-      encoded.text = toBocr16(globalState.encrypted)
+      encoded.text = toText(encoded.textKind, globalState.encrypted)
     }
 
     const textBin = computed(() => {
@@ -72,7 +78,7 @@ export default defineComponent({
       if (!text.length) return null
 
       try {
-        return fromBocr16(text)
+        return toBin(encoded.textKind, text)
       } catch (e) {
         return null
       }
@@ -127,7 +133,7 @@ export default defineComponent({
     async function fromFile (e: Event) {
       const file = (e.target as HTMLInputElement)!.files![0]
       const content = new Uint8Array(await file.arrayBuffer())
-      encoded.text = toBocr16(content)
+      encoded.text = toText(encoded.textKind, content)
       globalState.encrypted = content
     }
 
