@@ -85,6 +85,8 @@ export default defineComponent({
     })
 
     watch(textBin, async () => {
+      globalState.encrypted = textBin.value
+
       if (!textBin.value) {
         encoded.isValid = !encoded.text.trim().length ? undefined : false
         return
